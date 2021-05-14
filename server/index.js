@@ -16,9 +16,9 @@ app.get('/rooms', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log(socket.id)
     socket.on('message', (data) => {
         console.log(data);
+        io.emit('message', data);
     });
 });
 
@@ -28,3 +28,4 @@ server.listen(PORT, (err) => {
     }
     console.log(`server has been started on PORT ${PORT}`);
 });
+
