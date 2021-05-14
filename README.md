@@ -1,25 +1,21 @@
-This repository include server side and client side
+## *WHAT IS IT*
 
 
-A main goal current project is improve my knowledge in the following technologies
+It is pet project, which implements realtime web-chat
+
+## *GOAL*
+
+A main goal current project is improve my knowledge in the following technologies:
 
 
-MobX
+#### 1. MobX
+#### 2. WebSocket(Socket.io)
+#### 3. React
+#### 4. Jest
+#### 5. Nuxt.js
 
 
-WebSocket(Socket.io)
-
-
-React
-
-
-Jest
-
-
-Nuxt.js
-
-
-Getting started:
+## *Hot to use:*
 
 clone this repo with https
 
@@ -43,3 +39,7 @@ start script "npm install"
 
 
 start script "npm start" 
+
+
+## *Technical stack includes*: 
+CRA, MobX, Nuxt.js, Express.js, Socket.io
