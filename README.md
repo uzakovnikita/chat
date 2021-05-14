@@ -42,4 +42,4 @@ start script "npm start"
 
 
 ## *Technical stack includes*: 
-CRA, MobX, Nuxt.js, Express.js, Socket.io, TypeScript, PCSS
+CRA, MobX, Nuxt.js, Express.js, Socket.io, TypeScript, StyledComponents
