@@ -5,7 +5,7 @@ It is pet project, which implements realtime web-chat
 
 ## *GOAL*
 
-A main goal current project is improve my knowledge in the following technologies:
+The main goal current project is improve my knowledge in the following technologies:
 
 
 #### 1. MobX
