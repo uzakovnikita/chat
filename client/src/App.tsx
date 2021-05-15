@@ -6,20 +6,18 @@ import './App.css';
 const URL = 'http://localhost:1000';
 
 const App: FunctionComponent = () => {
-    const socket = useRef<Socket<DefaultEventsMap, DefaultEventsMap>>();
+    const socket = useRef<Socket<DefaultEventsMap, DefaultEventsMap> | {[key: string]: any}>();
     const [messages, setMessages] = useState<string[]>([]);
     const [message, setMessage] = useState<string>('');
     useEffect(() => {
         socket.current = io(URL, {autoConnect: false})
-        socket.current.on('connect', () => {
-            socket.current?.send('hello')
+        socket.current?.on('session', ({sessionID, userID}:{sessionID: string, userID: string}) => {
+            if (socket.current) {
+                socket.current.auth = {sessionID};
+                socket.current.userID = userID;
+            }
+            localStorage.setItem('sessionID', sessionID);
         })
-        socket.current.onAny((event, ...args) => {
-            console.log(event, args);
-        })
-        socket.current?.on('message', (msg) => {
-            setMessages(prevMessages => [...prevMessages, msg]);
-        });
     }, []);
 
 
@@ -37,12 +35,12 @@ const App: FunctionComponent = () => {
     const handleAuth = (e: React.ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (socket.current) {
-            socket.current.auth = {username: e.target.value}
+            socket.current.auth = {username: inputUserName.current?.value}
         };
         socket.current?.connect();
     }
 
-    const inputUserName = useRef(null);
+    const inputUserName = useRef<HTMLInputElement>(null);
 
     return (
         <div className="app">
@@ -54,6 +52,7 @@ const App: FunctionComponent = () => {
             <form className="user" style={{display: 'flex', flexDirection: 'column', maxWidth: '300px'}} onSubmit={handleAuth}>
                 <label htmlFor="username">Имя пользователя</label>
                 <input id="username" type="text" ref={inputUserName}/>
+                <button type="submit">Авторизоваться</button>
             </form>
             <ul className="messages">
                 {messages.map((message => <li className="messages__message">{message}</li>))}
