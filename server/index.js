@@ -66,6 +66,8 @@ io.on("connection", (socket) => {
     sessionID: socket.sessionID,
     userID: socket.userID,
   });
+  // из за того, что мы перезаписали сессию мы должны отправить сообщение сами себе по новому адресу
+  // сессии
   socket.on("private message", ({ content, to }) => {
     socket.to(to).to(socket.userID).emit("private message", {
       content,
