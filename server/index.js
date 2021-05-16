@@ -72,8 +72,20 @@ io.on("connection", (socket) => {
       from: socket.id,
     });
   });
-
+  socket.on('disconnect', async () => {
+    const mathcingSockets = await io.in(socket.userID).allSockets();
+    const isDisconnected = mathcingSockets.size === 0;
+    if (isDisconnected) {
+      socket.broadcast.emit('user disconnected', socket.userID);
+      sessionStore.saveSession(socket.sessionID, {
+        userID: socket.userID,
+        username: socket.username,
+        connected: false,
+      })
+    }
+  })
 });
+
 
 server.listen(PORT, (err) => {
   if (err) {
