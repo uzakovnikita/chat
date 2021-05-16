@@ -5,6 +5,8 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const cors = require("cors");
 
+const { uuid } = require('uuidv4');
+
 import sessionStore from "./sessionStore";
 
 const io = new Server(server, { cors: { origin: "*" } });
@@ -13,10 +15,6 @@ const PORT = process.env.PORT || 1000;
 
 const rooms = new Map();
 app.use(cors());
-app.get("/rooms", (req, res) => {
-  rooms.set();
-  res.json(rooms);
-});
 
 io.use((socket, next) => {
   const sessionID = socket.handshake.auth.sessionID;
@@ -35,8 +33,8 @@ io.use((socket, next) => {
     return next(new Error("invalid username"));
   }
   // create new session
-  const sessionID = randomId();
-  const userID = randomId();
+  const sessionID = uuid();
+  const userID = uuid();
   sessionStore.saveSession(sessionID, {userID, username});
   socket.sessionID = sessionID;
   socket.userID = userID;
@@ -48,12 +46,26 @@ io.on("connection", (socket) => {
 	// используется для того чтобы войти в комнату которую мы переопределили
 	socket.join(socket.userID);
   const users = [];
-  for (let [id, socket] of io.of("/").sockets) {
+  const messagesPerUser = new Map();
+  // todo: messageStore
+  messageStore.findMessagesForUser(socket.userID).forEach((message) => {
+    const {from, to} = message;
+    const otherUser = socket.userID === from ? to : from;
+    if (messagesPerUser.has(otherUser)) {
+      messagesPerUser.get(otherUser).push(message);
+    } else {
+      messagesPerUser.set(otherUser, [message]);
+    }
+  });
+  // todo: findAllSession in sessionStore
+  sessionStore.findAllSessions().forEach(session => {
     users.push({
-      userID: id,
-      username: socket.username,
+      userID: session.userID,
+      username: session.username,
+      connected: session.connected,
+      messages: messagesPerUser.get(session.userID) || [],
     });
-  }
+  })
 	// для того чтобы клиент получил список пользователей
   socket.emit("users", users);
 	// для того чтобы подписчики клиентов получили событие что подключен новый пользователь
@@ -66,13 +78,17 @@ io.on("connection", (socket) => {
     sessionID: socket.sessionID,
     userID: socket.userID,
   });
-  // из за того, что мы перезаписали сессию мы должны отправить сообщение сами себе по новому адресу
-  // сессии
   socket.on("private message", ({ content, to }) => {
+    const message = {
+      content,
+      from: socket.userID,
+      to,
+    };
     socket.to(to).to(socket.userID).emit("private message", {
       content,
       from: socket.id,
     });
+    messageStore.saveMessage(message);
   });
   socket.on('disconnect', async () => {
     const mathcingSockets = await io.in(socket.userID).allSockets();

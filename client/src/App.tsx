@@ -1,16 +1,12 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import {io, Socket} from 'socket.io-client';
 import { DefaultEventsMap } from 'socket.io-client/build/typed-events';
-import styled from "styled-components";
-import auth from './store/auth';
-
-import AuthPage from './pages/auth';
-import ChatPage from './pages/chat';
+import './App.css';
 
 const URL = 'http://localhost:1000';
 
 const App: FunctionComponent = () => {
-    const socket = useRef<any>();
+    const socket = useRef<Socket<DefaultEventsMap, DefaultEventsMap> | {[key: string]: any}>();
     const [messages, setMessages] = useState<string[]>([]);
     const [message, setMessage] = useState<string>('');
     useEffect(() => {
