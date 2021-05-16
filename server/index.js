@@ -47,7 +47,6 @@ io.on("connection", (socket) => {
 	socket.join(socket.userID);
   const users = [];
   const messagesPerUser = new Map();
-  // todo: messageStore
   messageStore.findMessagesForUser(socket.userID).forEach((message) => {
     const {from, to} = message;
     const otherUser = socket.userID === from ? to : from;
@@ -57,7 +56,6 @@ io.on("connection", (socket) => {
       messagesPerUser.set(otherUser, [message]);
     }
   });
-  // todo: findAllSession in sessionStore
   sessionStore.findAllSessions().forEach(session => {
     users.push({
       userID: session.userID,

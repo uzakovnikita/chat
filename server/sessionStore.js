@@ -10,6 +10,9 @@ const sessionStore = {
     },
     saveSession(id, session) {
         this.sessions[id] = session;
+    },
+    findAllSessions() {
+        return this.sessions;
     }
 }
 
