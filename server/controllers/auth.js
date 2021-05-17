@@ -1,12 +1,14 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const User = require('../db/models/User');
+const { JWT } = require('../config/keys');
 
 module.exports.register = async function(req, res) {
     const candidate = await User.findOne({
-        email: req.body.email,
+        name: req.body.name,
     });
-    
+
     if (candidate) {
         res.status(409).json({
             message: 'user already exists'
@@ -17,7 +19,7 @@ module.exports.register = async function(req, res) {
     const salt = bcrypt.genSaltSync(10);
     const password = String(req.body.password);
     const user = new User({
-        email: req.body.email,
+        name: req.body.name,
         password: bcrypt.hashSync(password, salt),
     });
 
@@ -34,17 +36,31 @@ module.exports.register = async function(req, res) {
 }
 
 module.exports.login = async function(req, res) {
-    const candidate = await User.findOne({email: req.body.email});
-    if (candidate) {
-        const passwordResult = bcrypt.compareSync
-    } else {
+    const candidate = await User.findOne({name: req.body.name});
+
+    if (!candidate) {
         res.status(404).json({
             message: 'User with this name is not exists'
-        })
+        });
+        return;
     }
-    res.status(200).json({
-        register: true,
-    });
+
+    const isEqualPassword = bcrypt.compareSync(String(req.body.password), candidate.password);
+    
+    if (isEqualPassword) {
+        const token = jwt.sign({
+            name: candidate.name,
+            userId: candidate._id,
+        }, JWT, {expiresIn: 60*60});
+        res.status(200).json({
+            token: `Bearer ${token}`,
+        });
+        return;
+    }
+
+    res.status(401).json({
+        message: 'Invalid password'
+    })
 };
 
 module.exports.logout = function(req, res) {
