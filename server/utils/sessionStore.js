@@ -16,4 +16,4 @@ const sessionStore = {
     }
 }
 
-export default sessionStore;
+module.exports.sessionStore = sessionStore;

@@ -8,4 +8,4 @@ const messageStore = {
     }
 };
 
-export default messageStore;
+module.exports.messageStore = messageStore;
