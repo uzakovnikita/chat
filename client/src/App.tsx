@@ -1,10 +1,12 @@
-import './App.css';
+import React from "react";
+import { FunctionComponent } from "react";
+import AuthPage from "./pages/authPage";
+import ChatPage from './pages/chatPage';
 
-const App = () => {
+const App: FunctionComponent = () => {
     return (
-        <div className="app">
+        <div>
+
         </div>
     )
-};
-
-export default App;
+}
