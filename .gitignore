@@ -1,4 +1,4 @@
 /client/node_modules
 /client/.pnp
-
+/.vscode
 /server/node_modules
