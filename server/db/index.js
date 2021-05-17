@@ -1,14 +1,9 @@
-const {MongoClient} = require('mongodb');
+const mongoose = require('mongoose');
 
-const client = new MongoClient('mongodb+srv://nuzakov:FghRtecv!23@cluster0.3a3uq.mongodb.net/chat?retryWrites=true&w=majority', { useUnifiedTopology: true });
+const {MONGO_URI} = require('../config/keys');
 
 const start = async () => {
-    try {
-        await client.connect()
-        console.log('connected')
-    } catch(err) {
-        console.log(err);
-    }
+    await mongoose.connect(MONGO_URI, { useUnifiedTopology: true, useNewUrlParser: true })
 };
 
 module.exports.start = start;
