@@ -1,60 +1,20 @@
 const { Server } = require('socket.io');
-const { uuid } = require('uuidv4');
 const {server} = require('../app');
-const {messageStore} = require('../utils/messageStore');
-const {sessionStore} = require('../utils/sessionStore');
+const User = require('../db/models/User');
 
 const io = new Server(server, { cors: { origin: '*' } });
 
 io.use((socket, next) => {
-    const sessionID = socket.handshake.auth.sessionID;
-    if (sessionID) {
-        // find existing session
-        const session = sessionStore.findSession(sessionID);
-        if (session) {
-            socket.sessionID = sessionID;
-            socket.userID = session.userID;
-            socket.username = session.username;
-            return next();
-        }
-    }
-    const username = socket.handshake.auth.username;
-    if (!username) {
-        return next(new Error('invalid username'));
-    }
-    // create new session
-    const sessionID = uuid();
-    const userID = uuid();
-    sessionStore.saveSession(sessionID, { userID, username });
-    socket.sessionID = sessionID;
+    const {userID} = socket.handshake.auth;
+
     socket.userID = userID;
-    socket.username = username;
     next();
 });
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     // используется для того чтобы войти в комнату которую мы переопределили
     socket.join(socket.userID);
-    const users = [];
-    const messagesPerUser = new Map();
-    messageStore.findMessagesForUser(socket.userID).forEach((message) => {
-        const { from, to } = message;
-        const otherUser = socket.userID === from ? to : from;
-        if (messagesPerUser.has(otherUser)) {
-            messagesPerUser.get(otherUser).push(message);
-        } else {
-            messagesPerUser.set(otherUser, [message]);
-        }
-    });
-    sessionStore.findAllSessions().forEach((session) => {
-        users.push({
-            userID: session.userID,
-            username: session.username,
-            connected: session.connected,
-            messages: messagesPerUser.get(session.userID) || [],
-        });
-    });
-    // для того чтобы клиент получил список пользователей
+    const users = await User.find().map(({_id, name}) => ({id: _id, name}));
     socket.emit('users', users);
     // для того чтобы подписчики клиентов получили событие что подключен новый пользователь
     socket.broadcast.emit('user connected', {
@@ -83,11 +43,13 @@ io.on('connection', (socket) => {
         const isDisconnected = mathcingSockets.size === 0;
         if (isDisconnected) {
             socket.broadcast.emit('user disconnected', socket.userID);
-            sessionStore.saveSession(socket.sessionID, {
-                userID: socket.userID,
-                username: socket.username,
-                connected: false,
-            });
+            // sessionStore.saveSession(socket.sessionID, {
+            //     userID: socket.userID,
+            //     username: socket.username,
+            //     connected: false,
+            // });
         }
     });
 });
+
+module.exports = this;

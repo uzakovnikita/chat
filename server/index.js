@@ -1,7 +1,6 @@
 const {server} = require('./app');
 const {start} = require('./db/index');
 const PORT = process.env.PORT || 1000;
-
 (async () => {
   try {
     await start();
@@ -16,6 +15,6 @@ const PORT = process.env.PORT || 1000;
     console.log(err)
   }
 })()
-
+require('./sockets/index');
 
 

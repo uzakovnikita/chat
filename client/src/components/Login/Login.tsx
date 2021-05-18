@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { FunctionComponent } from 'react';
+import { observer } from "mobx-react"
+import auth from '../../store/auth';
 import {URLS} from '../../constants/enums';
 
 const Login: FunctionComponent = () => {
@@ -8,19 +10,7 @@ const Login: FunctionComponent = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log(name)
-        const response = await fetch(URLS.Login, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: name.trim(),
-                password: password.trim()
-            })
-        });
-        const result = await response.json();
-        
+        await auth.login(name, password);
     }
     return (
         <div>
@@ -34,4 +24,4 @@ const Login: FunctionComponent = () => {
     )
 };
 
-export default Login;
+export default observer(Login);
