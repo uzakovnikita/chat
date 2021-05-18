@@ -1,8 +1,6 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
 const User = require('../db/models/User');
-const { JWT } = require('../config/keys');
 
 module.exports.register = async function(req, res) {
     const candidate = await User.findOne({
@@ -24,11 +22,13 @@ module.exports.register = async function(req, res) {
     });
 
     try {
+        console.log('tut')
         await user.save();
         res.status(201).json({
             message: 'user was created'
         })
     } catch (err) {
+        console.log(err)
         res.status(501).json({
             message: 'user wasn\'t created'
         })
@@ -48,13 +48,7 @@ module.exports.login = async function(req, res) {
     const isEqualPassword = bcrypt.compareSync(String(req.body.password), candidate.password);
     
     if (isEqualPassword) {
-        const token = jwt.sign({
-            name: candidate.name,
-            userId: candidate._id,
-        }, JWT, {expiresIn: 60*60});
-        res.status(200).json({
-            token: `Bearer ${token}`,
-        });
+        res.status(200).json({message: 'login success', userID: candidate._id});
         return;
     }
 

@@ -6,7 +6,9 @@ import ChatPage from './pages/chatPage';
 const App: FunctionComponent = () => {
     return (
         <div>
-
+            <AuthPage/>
         </div>
     )
-}
+};
+
+export default App;
