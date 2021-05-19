@@ -7,15 +7,19 @@ const io = new Server(server, { cors: { origin: '*' } });
 io.use((socket, next) => {
     const {userID} = socket.handshake.auth;
 
-    socket.userID = userID;
+    socket.userID = String(userID);
     next();
 });
 
 io.on('connection', async (socket) => {
     // используется для того чтобы войти в комнату которую мы переопределили
     socket.join(socket.userID);
-    const users = await User.find().map(({_id, name}) => ({id: _id, name}));
-    socket.emit('users', users);
+
+    const users = await User.find();
+
+    const mappedUsers = users.filter(({_id}) => String(_id) !== String(socket.userID)).map(({_id, name}) => ({userID: _id, name}));
+    console.log('connect')
+    socket.emit('users', mappedUsers);
     // для того чтобы подписчики клиентов получили событие что подключен новый пользователь
     socket.broadcast.emit('user connected', {
         userID: socket.id,
@@ -27,16 +31,13 @@ io.on('connection', async (socket) => {
         userID: socket.userID,
     });
     socket.on('private message', ({ content, to }) => {
-        const message = {
-            content,
-            from: socket.userID,
-            to,
-        };
+        console.log(content)
+        console.log(to)
         socket.to(to).to(socket.userID).emit('private message', {
             content,
             from: socket.id,
         });
-        messageStore.saveMessage(message);
+        // messageStore.saveMessage(message);
     });
     socket.on('disconnect', async () => {
         const mathcingSockets = await io.in(socket.userID).allSockets();

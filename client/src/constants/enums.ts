@@ -3,7 +3,3 @@ export enum URLS {
     Signup = 'http://localhost:1000/api/auth/register',
     SocketServer = 'http://localhost:1000'
 };
-
-export enum COLORS {
-    Blue42 = '#4287f5'
-}

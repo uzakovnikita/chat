@@ -1,8 +1,21 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from "mobx-react"
 import auth from '../../store/auth';
-import {URLS} from '../../constants/enums';
+import styled from 'styled-components';
+
+import AuthForm from '../../components/styledComponents/AuthForm';
+import Button from '../../components/styledComponents/Button';
+import AuthInput from '../../components/styledComponents/AuthInput';
+import Text from '../../components/styledComponents/Text';
+
+const SignupContainer = styled.div`
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+`
 
 const Login: FunctionComponent = () => {
     const [name, setName] = useState('');
@@ -13,14 +26,14 @@ const Login: FunctionComponent = () => {
         await auth.login(name, password);
     }
     return (
-        <div>
-            login
-            <form onSubmit={handleLogin}>
-                <input type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
-                <input type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
-                <button type="submit">Войти</button>
-            </form>
-        </div>
+        <SignupContainer>
+            <Text>Login</Text>
+            <AuthForm onSubmit={handleLogin}>
+                <AuthInput type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
+                <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
+                <Button type="submit">Войти</Button>
+            </AuthForm>
+        </SignupContainer>  
     )
 };
 

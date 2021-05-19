@@ -1,6 +1,20 @@
-import React, { useRef, useState } from 'react';
-import { FunctionComponent } from 'react';
+import React, { useState, FunctionComponent } from 'react';
+import styled from 'styled-components';
+
 import {URLS} from '../../constants/enums';
+
+import AuthForm from '../../components/styledComponents/AuthForm';
+import Button from '../../components/styledComponents/Button';
+import AuthInput from '../../components/styledComponents/AuthInput';
+import Text from '../../components/styledComponents/Text';
+
+const SignupContainer = styled.div`
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    
+`
 
 const Signup: FunctionComponent = () => {
     const [name, setName] = useState('');
@@ -23,14 +37,14 @@ const Signup: FunctionComponent = () => {
         console.log(result);
     }
     return (
-        <div>
-            Signup
-            <form onSubmit={handleSignup}>
-                <input type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
-                <input type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
-                <button type="submit">Войти</button>
-            </form>
-        </div>  
+        <SignupContainer>
+            <Text>Signup</Text>
+            <AuthForm onSubmit={handleSignup}>
+                <AuthInput type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
+                <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
+                <Button type="submit">Зарегистрироваться</Button>
+            </AuthForm>
+        </SignupContainer>  
     )
 };
 

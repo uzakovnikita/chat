@@ -5,15 +5,17 @@ import auth from './store/auth';
 import common from './store/common';
 import AuthPage from "./pages/authPage";
 import ChatPage from './pages/chatPage';
+import Main from "./components/styledComponents/Main";
+import './App.css';
 
 const App: FunctionComponent = () => {
     
     return (
-        <div>
+        <Main>
             {common.error && common.error}
             {auth.isLogin && <ChatPage/>}
             {!auth.isLogin && <AuthPage/>}
-        </div>
+        </Main>
     )
 };
 

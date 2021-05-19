@@ -1,34 +1,18 @@
 import React, { FunctionComponent, useState } from 'react';
 
-import styled from 'styled-components';
-
 import Login from '../../components/Login';
 import Signup from '../../components/Signup';
-
-import {COLORS} from '../../constants/enums';
-
-const Button = styled.button`
-    width: 50px;
-    height: 30px;
-    background-color: ${COLORS.Blue42};
-    border: none;
-    cursor: pointer;
-`;
-const Main = styled.main`
-    width: 100%;
-    max-width: 1020px;
-    margin: 0 auto;
-    padding: 0 20px;
-`
+import Button from '../../components/styledComponents/Button';
+import Flex from '../../components/styledComponents/Flex';
 
 const AuthPage: FunctionComponent = () => {
     const [view, setView] = useState(false);
     return (
-        <Main>
+        <Flex width="100%" height="100%">  
             <Button onClick={() => setView(prevState => !prevState)}>Toggle button</Button>
             {view && <Login/>}
             {!view && <Signup/>}
-        </Main>
+        </Flex>
     )
 };
 
