@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 type ButtonProps = {
     'align'?: string;
+    'isNotCentrAlign'?: boolean;
 }
 
 const Button = styled.button<ButtonProps>`
@@ -17,6 +18,8 @@ const Button = styled.button<ButtonProps>`
     transition: 0.2s;
     outline: none;
     align-self: ${props => props.align || ''};
+    margin: ${props => props.isNotCentrAlign ? '' : 'margin 0 auto'};
+    box-sizing: border-box;
     &:hover {
         background-color: ${props => props.theme.colors['secondary-bg']};
     }

@@ -7,4 +7,8 @@ ul, li {
 html, body, #root {
     height: 100%;
     width: 100%;
+    box-sizing: border-box;
+}
+input, span, div, p, li, ul, button {
+    box-sizing: border-box;
 }

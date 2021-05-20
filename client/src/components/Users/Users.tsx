@@ -1,23 +1,13 @@
 import React, { useEffect } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
-import styled from 'styled-components';
+
 import auth from '../../store/auth';
 import common from '../../store/common';
 import chat from '../../store/chat';
 
 import Flex from '../styledComponents/Flex';
-
-const UserItem = styled.li`
-    width: 300px;
-    height: 50px;
-    border: 1px solid red;
-    cursor: pointer;
-    &:hover {
-        border: 1px solid green;
-    }
-    margin-bottom: 10px;
-`;
+import Card from '../styledComponents/Card';
 
 const Users: FunctionComponent = () => {
     useEffect(() => {
@@ -29,7 +19,7 @@ const Users: FunctionComponent = () => {
             common.registrError(String(err));
         }
     }, []);
-    const handleUserClick = (userID: string, name: string) => () => {
+    const handleUserClick = (userID: string, name: string) => (): void => {
         chat.join(userID, name);
     };
     return (
@@ -37,12 +27,12 @@ const Users: FunctionComponent = () => {
             Users List
             <Flex width="100%" height="100%">
                 {common.users.map((user) => (
-                    <UserItem
+                    <Card
                         key={user.userID}
                         onClick={handleUserClick(user.userID, user.name)}
                     >
                         {user.name}
-                    </UserItem>
+                    </Card>
                 ))}
             </Flex>
         </main>

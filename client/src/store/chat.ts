@@ -1,9 +1,6 @@
 import { makeAutoObservable } from "mobx";
-import { io } from "socket.io-client";
-import { URLS } from "../constants/enums";
-import { users } from "../constants/types";
 
-class Chat {
+export class Chat {
     constructor() {
         makeAutoObservable(this);
     }
@@ -12,6 +9,10 @@ class Chat {
     join(userID: string, name: string) {
         this.privateRoomWith = {userID, name};
         this.isPrivateRoom = true;
+    }
+    leave(){
+        this.isPrivateRoom = false;
+        this.privateRoomWith = {userID: '', name: ''};
     }
 };
 

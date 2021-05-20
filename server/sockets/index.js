@@ -35,7 +35,7 @@ io.on('connection', async (socket) => {
         console.log(to)
         socket.to(to).to(socket.userID).emit('private message', {
             content,
-            from: socket.id,
+            from: socket.userID,
         });
         // messageStore.saveMessage(message);
     });

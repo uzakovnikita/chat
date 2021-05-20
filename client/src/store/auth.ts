@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { URLS } from "../constants/enums";
 
-class Auth {
+export class Auth {
     constructor() {
         makeAutoObservable(this);
     }

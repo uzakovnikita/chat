@@ -4,7 +4,7 @@ const SendBox = styled.form`
     display: flex;
     position: relative;
     width: 100%;
-    height: 20%;
+    height: 10%;
     margin-top: 10px;
 `;
 
