@@ -1,9 +1,20 @@
 const mongoose = require('mongoose');
 
-const {MONGO_URI} = require('../config/keys');
+const { MONGO_URI } = require('../config/keys');
 
-const start = async () => {
-    await mongoose.connect(MONGO_URI, { useUnifiedTopology: true, useNewUrlParser: true })
-};
+let connect = null;
 
-module.exports.start = start;
+(async () => {
+    try {
+        connect = await mongoose.connect(MONGO_URI, {
+            useUnifiedTopology: true,
+            useNewUrlParser: true,
+        });
+        console.log('db is connected');
+    } catch (err) {
+        console.log(err);
+    }
+})();
+
+module.exports.connect = connect;
+module.exports = this;

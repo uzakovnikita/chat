@@ -42,6 +42,7 @@ export class Common {
     
     listenMessages() {
         this.socket.on('private message', ({content, from}) => {
+            console.log(from)
             if (!this.messages[from]) {
                 this.messages[from] = [];
             }
