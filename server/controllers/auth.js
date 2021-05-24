@@ -71,13 +71,13 @@ module.exports.login = async function (req, res) {
         return;
     }
 
-    const rooms = await Rooms.find({ members: candidate._id });
-    const users = await User.find();
-    const dialogs = rooms.map(room => {
-        const interlocutorId = room.members.filter(id => String(id) !== String(candidate._id))[0];
-        const interlocutorName = users.find(({_id}) => String(_id) === String(interlocutorId)).name;
-        return {roomId: room._id, interlocutorName, interlocutorId};
-    });
+    // const rooms = await Rooms.find({ members: candidate._id });
+    // const users = await User.find();
+    // const dialogs = rooms.map(room => {
+    //     const interlocutorId = room.members.filter(id => String(id) !== String(candidate._id))[0];
+    //     const interlocutorName = users.find(({_id}) => String(_id) === String(interlocutorId)).name;
+    //     return {roomId: room._id, interlocutorName, interlocutorId};
+    // });
 
     const isEqualPassword = bcrypt.compareSync(
         String(req.body.password),
@@ -88,7 +88,7 @@ module.exports.login = async function (req, res) {
         res.status(200).json({
             message: 'login success',
             userID: candidate._id,
-            dialogs
+            // dialogs
         });
         return;
     }

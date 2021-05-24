@@ -1,34 +1,25 @@
-import React, { useEffect } from 'react';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import auth from '../../store/auth';
-import common from '../../store/common';
-import chat from '../../store/chat';
 
 import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
+import { ContextChat } from '../../store/contexts';
+import { Chat } from '../../store/chat';
 
 const Users: FunctionComponent = () => {
-    useEffect(() => {
-        try {
-            console.log(auth.id);
-            common.connect(auth.id);
-            common.getUsers();
-        } catch (err) {
-            common.registrError(String(err));
-        }
-    }, []);
+    const chat = useContext(ContextChat) as Chat;
+    
     const handleUserClick = (userID: string, name: string) => (): void => {
-        chat.join(userID, name);
     };
+    
     return (
         <main>
             Users List
             <Flex width="100%" height="100%">
-                {common.users.map((user) => (
+                {chat.rooms.map(({roomId, interlocutorName, interlocutorId}) => (
                     <Card
-                        key={user.userID}
+                        key={roomId}
                         onClick={handleUserClick(user.userID, user.name)}
                     >
                         {user.name}

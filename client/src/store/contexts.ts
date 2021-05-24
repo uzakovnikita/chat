@@ -1,5 +1,5 @@
 import React from 'react';
-import {Common} from './common';
+import {Common} from './sockets';
 import {Chat} from './chat';
 import {Auth} from './auth';
 

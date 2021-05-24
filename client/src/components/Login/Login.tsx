@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from "mobx-react"
-import auth from '../../store/auth';
+
 import styled from 'styled-components';
 
 import AuthForm from '../../components/styledComponents/AuthForm';
 import Button from '../../components/styledComponents/Button';
 import AuthInput from '../../components/styledComponents/AuthInput';
 import Text from '../../components/styledComponents/Text';
+import { ContextAuth, ContextChat, ContextCommon } from '../../store/contexts';
+import { Auth } from '../../store/auth';
+import { Common } from '../../store/sockets';
+import { Chat } from '../../store/chat';
+
 
 const SignupContainer = styled.div`
     margin: 0 auto;
@@ -20,10 +25,19 @@ const SignupContainer = styled.div`
 const Login: FunctionComponent = () => {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
+    const auth = useContext(ContextAuth) as Auth;
+    const common = useContext(ContextCommon) as Common;
+    const chat = useContext(ContextChat) as Chat;
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(name)
-        await auth.login(name, password);
+        try {
+            await auth.login(name, password);
+            common.connect(auth.id);
+            await chat.getRooms(auth.id as string);
+        } catch (err) {
+            alert(`login failed with error, try refresh this page`)
+            console.log(err);
+        }
     }
     return (
         <SignupContainer>

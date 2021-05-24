@@ -34,6 +34,7 @@ export class Auth {
             }
         } catch (err) {
             this.err = String(err);
+            throw new Error(`login finished with error: ${err}`);
         }
     }
 

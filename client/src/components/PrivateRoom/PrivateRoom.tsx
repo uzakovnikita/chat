@@ -8,7 +8,7 @@ import SendBox from '../../components/styledComponents/SendBox';
 import SingleMessage from '../styledComponents/SingleMessage';
 
 import {ContextCommon, ContextChat, ContextAuth} from '../../store/contexts';
-import {Common} from '../../store/common';
+import {Common} from '../../store/sockets';
 import {Chat} from '../../store/chat';
 
 const PrivateRoom: FunctionComponent = () => {
