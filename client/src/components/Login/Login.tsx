@@ -10,8 +10,8 @@ import AuthInput from '../../components/styledComponents/AuthInput';
 import Text from '../../components/styledComponents/Text';
 import { ContextAuth, ContextChat, ContextCommon } from '../../store/contexts';
 import { Auth } from '../../store/auth';
-import { Common } from '../../store/sockets';
-import { Chat } from '../../store/chat';
+import { Common } from '../../store/chat';
+import { Chat } from '../../store/chat_';
 
 
 const SignupContainer = styled.div`

@@ -3,8 +3,8 @@ import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import auth from '../../store/auth';
-import common from '../../store/sockets';
-import chat from '../../store/chat';
+import common from '../../store/chat';
+import chat from '../../store/chat_';
 import { ContextChat, ContextCommon, ContextAuth } from '../../store/contexts';
 
 import Users from '../../components/Rooms';

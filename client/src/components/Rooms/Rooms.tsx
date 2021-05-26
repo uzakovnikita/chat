@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
 import { ContextChat } from '../../store/contexts';
-import { Chat } from '../../store/chat';
+import { Chat } from '../../store/chat_';
 
 const Users: FunctionComponent = () => {
     const chat = useContext(ContextChat) as Chat;

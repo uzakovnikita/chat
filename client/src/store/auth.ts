@@ -30,11 +30,11 @@ export class Auth {
                 this.name = name;
                 this.id = String(result.userID);
             } else {
-                Promise.reject(res);
+                throw new Error(`fetching is not success, status: ${res.status}`)
             }
         } catch (err) {
             this.err = String(err);
-            throw new Error(`login finished with error: ${err}`);
+            throw new Error(`login failed with error: ${err}`);
         }
     }
 

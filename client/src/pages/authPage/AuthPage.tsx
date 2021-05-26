@@ -6,8 +6,8 @@ import Button from '../../components/styledComponents/Button';
 import Flex from '../../components/styledComponents/Flex';
 
 import auth from '../../store/auth';
-import common from '../../store/sockets';
-import chat from '../../store/chat';
+import common from '../../store/chat';
+import chat from '../../store/chat_';
 
 import { ContextChat, ContextCommon, ContextAuth } from '../../store/contexts';
 

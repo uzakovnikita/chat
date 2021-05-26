@@ -1,6 +1,6 @@
 import React from 'react';
-import {Common} from './sockets';
-import {Chat} from './chat';
+import {Common} from './chat';
+import {Chat} from './chat_';
 import {Auth} from './auth';
 
 export const ContextCommon = React.createContext<Common | undefined>(undefined);

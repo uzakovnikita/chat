@@ -5,14 +5,15 @@ import App from './App';
 import { theme } from './constants/theme';
 
 import './index.css';
+import auth from './store/auth';
+import chat from './store/chat';
+import { ContextAuth, ContextChat } from './store/contexts';
 
 ReactDOM.render(
     <ThemeProvider theme={theme}>
         <ContextAuth.Provider value={auth}>
             <ContextChat.Provider value={chat}>
-                <ContextCommon.Provider value={common}>
                     <App />
-                </ContextCommon.Provider>
             </ContextChat.Provider>
         </ContextAuth.Provider>
     </ThemeProvider>,
