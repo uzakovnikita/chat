@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState, useContext } from 'react';
+import React, { FunctionComponent, useState, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import Title from '../../components/styledComponents/Title';
@@ -7,56 +7,34 @@ import MessageInput from '../../components/styledComponents/MessageInput';
 import SendBox from '../../components/styledComponents/SendBox';
 import SingleMessage from '../styledComponents/SingleMessage';
 
-import {ContextCommon, ContextChat, ContextAuth} from '../../store/contexts';
-import {Common} from '../../store/chat';
-import {Chat} from '../../store/chat_';
+import { ContextChat, ContextAuth } from '../../store/contexts';
+import { Chat } from '../../store/chat';
+import { Auth } from '../../store/auth';
 
 const PrivateRoom: FunctionComponent = () => {
     const [messageText, setMessageText] = useState('');
-    const common = useContext(ContextCommon) as Common;
     const chat = useContext(ContextChat) as Chat;
-    const auth = useContext(ContextAuth)
+    const auth = useContext(ContextAuth) as Auth;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        common.send(chat.privateRoomWith.userID, messageText);
+        chat.send(messageText, auth.id as string);
         setMessageText('');
     };
     useEffect(() => {
-        common.listenMessages()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    const interlocutorId = chat.privateRoomWith.userID;
-    
-    // todo selfId
-    const selfId = (auth as {id: string}).id;
-
-    const interlocutorName = chat.privateRoomWith.name;
-    
-    const {messages} = common;
-    
-    const interlocutorMessage = messages[interlocutorId];
-    const selfMessage = messages[selfId];
-
-    const lastIndexOfMessage = Math.max(messages[interlocutorId]?.length ?? 0, messages[selfId]?.length ?? 0);
-
-    const historyOfMessages = [];
-    
+        chat.listenMessages();
+    }, [chat]);
     return (
-        <>
+        <MessagesContainer>
             <Title>
-                Собеседник: {interlocutorName}
+                {chat.interlocutorName}
             </Title>
-
-            <MessagesContainer className="messages-container">
-                
-                {common.messages[chat.privateRoomWith.userID] ? common.messages[chat.privateRoomWith.userID].map(message => <SingleMessage align={'flex-start'}>{message}</SingleMessage>) : null}    
-            </MessagesContainer>
-
+            {JSON.stringify(chat.messages[chat.idCurrentPrivateRoom as string], null, 2)}
             <SendBox onSubmit={handleSubmit}>
-                <MessageInput onChange={(e) => setMessageText(e.target.value)} value={messageText}></MessageInput>
+                <MessageInput value={messageText} onChange={(e) => setMessageText(e.target.value)}></MessageInput>
+                <MessageInput type="submit"></MessageInput>
             </SendBox>
-        </>
+        </MessagesContainer>
     );
 };
 

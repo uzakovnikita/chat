@@ -2,18 +2,23 @@ import { makeAutoObservable, observable } from 'mobx';
 import { io } from 'socket.io-client';
 import { URLS } from '../constants/enums';
 import { users } from '../constants/types';
+import { Message } from '../constants/types';
 
-export class Common {
+export class Chat {
     constructor() {
         makeAutoObservable(this);
     }
     users: users = [];
     socket = io(URLS.SocketServer, { autoConnect: false });
     error: string | null = null;
-    rooms: string[] = [];
+    rooms: {roomId: string, interlocutorName: string, interlocutorId: string}[] = [];
+    isPrivateRoom: boolean = false;
+    idCurrentPrivateRoom: string | null= null;
+    interlocutorName: string | null = null;
+    interlocutorId: string | null = null;
 
     messages: {
-        [key: string]: string[];
+        [key: string]: Message[];
     } = observable({});
 
     registrError(error: string) {
@@ -28,12 +33,26 @@ export class Common {
         this.socket.connect();
     }
 
-    join(id: string) {
-        this.socket.emit('join', {room: id});
+    join(id: string, interlocutorName: string, interlocutorId: string, selfId: string) {
+        this.socket.emit('join', {room: id, selfId});
+        this.isPrivateRoom = true;
+        this.idCurrentPrivateRoom = id;
+        this.interlocutorName = interlocutorName;
+        this.interlocutorId = interlocutorId;
+        this.socket.on('initial message', ({messages}) => {
+            messages.forEach((message: Message) => {
+                if (!this.messages[message.room]) {
+                    this.messages[message.room] = [message];
+                    return;
+                }
+                this.messages[message.room].push(message);
+            })
+        })
     }
 
-    leave(id: string) {
-        this.socket.emit('leave', {room: id})
+    leave() {
+        this.socket.emit('leave', {room: this.idCurrentPrivateRoom});
+        this.isPrivateRoom = false;
     }
 
     async getRooms(id: string) {
@@ -46,7 +65,8 @@ export class Common {
                 body: JSON.stringify({userId: id}),
             });
             if (response.ok) {
-                this.rooms = await response.json();
+                const resp = await response.json();
+                this.rooms = resp.dialogs;
             } else {
                 throw new Error(
                     `response failed with code: ${response.status}`,
@@ -58,22 +78,24 @@ export class Common {
         }
     }
 
-    send(to: string, text: string) {
+    send(content: string, from: string) {
         this.socket.emit('private message', {
-            content: text,
-            to,
+            content,
+            from,
+            to: this.interlocutorId,
+            room: this.idCurrentPrivateRoom,
         });
     }
 
     listenMessages() {
-        this.socket.on('private message', ({ content, from }) => {
-            console.log(from);
-            if (!this.messages[from]) {
-                this.messages[from] = [];
+        this.socket.on('private message', (message: Message) => {
+            if (!this.messages[message.room]) {
+                this.messages[message.room] = [message];
             }
-            this.messages[from].push(content);
+            this.messages[message.room].push(message)
+            console.log(this.messages[message.room])
         });
     }
 }
 
-export default new Common();
+export default new Chat();

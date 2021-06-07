@@ -8,11 +8,8 @@ import AuthForm from '../../components/styledComponents/AuthForm';
 import Button from '../../components/styledComponents/Button';
 import AuthInput from '../../components/styledComponents/AuthInput';
 import Text from '../../components/styledComponents/Text';
-import { ContextAuth, ContextChat, ContextCommon } from '../../store/contexts';
+import { ContextAuth } from '../../store/contexts';
 import { Auth } from '../../store/auth';
-import { Common } from '../../store/chat';
-import { Chat } from '../../store/chat_';
-
 
 const SignupContainer = styled.div`
     margin: 0 auto;
@@ -26,14 +23,10 @@ const Login: FunctionComponent = () => {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const auth = useContext(ContextAuth) as Auth;
-    const common = useContext(ContextCommon) as Common;
-    const chat = useContext(ContextChat) as Chat;
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await auth.login(name, password);
-            common.connect(auth.id);
-            await chat.getRooms(auth.id as string);
         } catch (err) {
             alert(`login failed with error, try refresh this page`)
             console.log(err);

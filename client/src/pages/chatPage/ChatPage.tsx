@@ -2,36 +2,39 @@ import { useContext, useEffect } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import auth from '../../store/auth';
-import common from '../../store/chat';
-import chat from '../../store/chat_';
-import { ContextChat, ContextCommon, ContextAuth } from '../../store/contexts';
+import { Chat } from '../../store/chat';
+import { Auth } from '../../store/auth';
+import { ContextAuth, ContextChat } from '../../store/contexts';
 
-import Users from '../../components/Rooms';
+import Rooms from '../../components/Rooms';
 import PrivateRoom from '../../components/PrivateRoom';
 import Button from '../../components/styledComponents/Button';
 
+
+
 const ChatPage: FunctionComponent = () => {
+    const chat = useContext(ContextChat) as Chat;
+    const auth = useContext(ContextAuth) as Auth;
     useEffect(() => {
         try {
-            console.log(auth.id);
-            common.connect(auth.id);
+            chat.connect(auth.id);
         } catch (err) {
-            common.registrError(String(err));
+            chat.registrError(String(err));
         }
-    }, []);
+    }, [auth.id, chat]);
     const handleBack = () => {
+        chat.leave()
     };
-    const chat = useContext(ContextChat) as Chat;
+    
     return (
         <>
             {chat.isPrivateRoom && (
-
-                            <Button align={'flex-start'} isNotCentrAlign={true} onClick={handleBack}>Назад</Button>
-                            <PrivateRoom />
-
+                <>
+                    <Button align={'flex-start'} isNotCentrAlign={true} onClick={handleBack}>Назад</Button>
+                    <PrivateRoom />
+                </>
             )}
-            {!chat.isPrivateRoom && <Users />}
+            {!chat.isPrivateRoom && <Rooms />}
         </>
     );
 };

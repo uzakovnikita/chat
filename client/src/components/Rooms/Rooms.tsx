@@ -1,33 +1,39 @@
-import { FunctionComponent, useContext } from 'react';
+import { FunctionComponent, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-
 
 import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
-import { ContextChat } from '../../store/contexts';
-import { Chat } from '../../store/chat_';
+import { ContextChat, ContextAuth } from '../../store/contexts';
+import { Chat } from '../../store/chat';
+import { Auth } from '../../store/auth';
 
-const Users: FunctionComponent = () => {
+const Rooms: FunctionComponent = () => {
     const chat = useContext(ContextChat) as Chat;
-    
-    const handleUserClick = (userID: string, name: string) => (): void => {
+    const auth = useContext(ContextAuth) as Auth;
+
+    const handleUserClick = (roomId: string, interlocutorName: string, interlocutorId: string) => (): void => {
+        chat.join(roomId, interlocutorName, interlocutorId, auth.id as string);
     };
-    
+
+    useEffect(() => {
+        (async () => {
+            const { id } = auth;
+            await chat.getRooms(id as string);
+        })();
+    }, [auth, chat]);
+
     return (
-        <main>
+        <>
             Users List
-            <Flex width="100%" height="100%">
-                {chat.rooms.map(({roomId, interlocutorName, interlocutorId}) => (
-                    <Card
-                        key={roomId}
-                        onClick={handleUserClick(user.userID, user.name)}
-                    >
-                        {user.name}
-                    </Card>
-                ))}
+            <Flex width='100%' height='100%'>
+                {chat.rooms.map(
+                    ({ roomId, interlocutorName, interlocutorId }) => {
+                        return <Card key={roomId} onClick={handleUserClick(roomId, interlocutorName, interlocutorId)}>{interlocutorName}</Card>;
+                    },
+                )}
             </Flex>
-        </main>
+        </>
     );
 };
 
-export default observer(Users);
+export default observer(Rooms);
