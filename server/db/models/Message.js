@@ -13,7 +13,11 @@ const messageSchema = new Schema({
     to: {
         refs: 'users',
         type: Schema.Types.ObjectId,
-    }
+    },
+    room: {
+        refs: 'rooms',
+        type: Schema.Types.ObjectId,
+    },
 });
 
 module.exports = mongoose.model('messages', messageSchema);
