@@ -7,6 +7,6 @@ export type StyledProps  = {
 export type Message =  {
     from: string,
     to: string,
-    content: string,
+    messageBody: string,
     room: string,
 };

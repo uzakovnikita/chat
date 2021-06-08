@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, action } from 'mobx';
 import { io } from 'socket.io-client';
 import { URLS } from '../constants/enums';
 import { users } from '../constants/types';
@@ -11,14 +11,19 @@ export class Chat {
     users: users = [];
     socket = io(URLS.SocketServer, { autoConnect: false });
     error: string | null = null;
-    rooms: {roomId: string, interlocutorName: string, interlocutorId: string}[] = [];
+    rooms: {
+        roomId: string;
+        interlocutorName: string;
+        interlocutorId: string;
+    }[] = [];
     isPrivateRoom: boolean = false;
-    idCurrentPrivateRoom: string | null= null;
+    idCurrentPrivateRoom: string | null = null;
     interlocutorName: string | null = null;
     interlocutorId: string | null = null;
+    isSubscribedOnPrivateMessage: boolean = false;
 
     messages: {
-        [key: string]: Message[];
+        [key: string]: any;
     } = observable({});
 
     registrError(error: string) {
@@ -33,25 +38,39 @@ export class Chat {
         this.socket.connect();
     }
 
-    join(id: string, interlocutorName: string, interlocutorId: string, selfId: string) {
-        this.socket.emit('join', {room: id, selfId});
-        this.isPrivateRoom = true;
-        this.idCurrentPrivateRoom = id;
-        this.interlocutorName = interlocutorName;
-        this.interlocutorId = interlocutorId;
-        this.socket.on('initial message', ({messages}) => {
-            messages.forEach((message: Message) => {
-                if (!this.messages[message.room]) {
-                    this.messages[message.room] = [message];
-                    return;
+    join(
+        id: string,
+        interlocutorName: string,
+        interlocutorId: string,
+        selfId: string,
+    ) { 
+        const ctx = this;
+        action(
+            () => {
+                if (!ctx.messages[id]) {
+                    ctx.messages[id] = observable([]);
+                    ctx.socket.on('initial message', ({ messages }) => {
+                        action(() => {
+                            messages.forEach((message: Message) => {
+                                ctx.messages[message.room].push(message);
+                            });
+                        })()
+                    });
+                } else {
+                    ctx.messages[id].clear(0);
                 }
-                this.messages[message.room].push(message);
-            })
-        })
+                ctx.socket.emit('join', { room: id, selfId });
+                ctx.isPrivateRoom = true;
+                ctx.idCurrentPrivateRoom = id;
+                ctx.interlocutorName = interlocutorName;
+                ctx.interlocutorId = interlocutorId;
+                
+            }
+        )()
     }
 
     leave() {
-        this.socket.emit('leave', {room: this.idCurrentPrivateRoom});
+        this.socket.emit('leave', { room: this.idCurrentPrivateRoom });
         this.isPrivateRoom = false;
     }
 
@@ -60,9 +79,9 @@ export class Chat {
             const response = await fetch(URLS.Rooms, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json;charset=utf-8'
+                    'Content-Type': 'application/json;charset=utf-8',
                 },
-                body: JSON.stringify({userId: id}),
+                body: JSON.stringify({ userId: id }),
             });
             if (response.ok) {
                 const resp = await response.json();
@@ -79,6 +98,7 @@ export class Chat {
     }
 
     send(content: string, from: string) {
+        console.log('send message')
         this.socket.emit('private message', {
             content,
             from,
@@ -88,13 +108,12 @@ export class Chat {
     }
 
     listenMessages() {
-        this.socket.on('private message', (message: Message) => {
-            if (!this.messages[message.room]) {
-                this.messages[message.room] = [message];
-            }
-            this.messages[message.room].push(message)
-            console.log(this.messages[message.room])
-        });
+        if (!this.isSubscribedOnPrivateMessage) {
+            this.isSubscribedOnPrivateMessage = true;
+            this.socket.on('private message', (message: Message) => {
+                this.messages[message.room].push(message);
+            });
+        }
     }
 }
 

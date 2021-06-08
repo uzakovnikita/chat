@@ -10,6 +10,10 @@ const SingleMessage = styled.div<SingleMessageProps>`
     height: auto;
     color: ${props => props.theme.colors['blue-32-a8']};
     font-family: ${props => props.theme.fonts.primary};
+    background-color: ${props => props.theme.colors['secondary-bg']};
+    margin: 5px;
+    border-radius: 5px;
+    padding: 5px;
 `;
 
 export default SingleMessage;

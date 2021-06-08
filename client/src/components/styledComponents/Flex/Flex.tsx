@@ -7,7 +7,6 @@ type FlexProps = {
     width?: string;
     height?: string;
 }
-
 const Flex = styled.div<FlexProps>`
     display: flex;
     justify-content: ${(props) => props.justify || 'center'};

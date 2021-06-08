@@ -1,4 +1,11 @@
-import React, { FunctionComponent, useState, useContext, useEffect } from 'react';
+import React, {
+    FunctionComponent,
+    useState,
+    useContext,
+    useEffect,
+    useRef,
+    useLayoutEffect
+} from 'react';
 import { observer } from 'mobx-react-lite';
 
 import Title from '../../components/styledComponents/Title';
@@ -12,6 +19,7 @@ import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
 
 const PrivateRoom: FunctionComponent = () => {
+
     const [messageText, setMessageText] = useState('');
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
@@ -21,21 +29,39 @@ const PrivateRoom: FunctionComponent = () => {
         chat.send(messageText, auth.id as string);
         setMessageText('');
     };
+
     useEffect(() => {
-        chat.listenMessages();
-    }, [chat]);
+        chat.listenMessages(); 
+    }, []);
+    
+    useEffect(() => {
+        containerRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, []);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     return (
-        <MessagesContainer>
-            <Title>
-                {chat.interlocutorName}
-            </Title>
-            {JSON.stringify(chat.messages[chat.idCurrentPrivateRoom as string], null, 2)}
+        <>  
+            <Title>{chat.interlocutorName}</Title>
+            <MessagesContainer  id="messages-container">
+                {chat.messages[chat.idCurrentPrivateRoom as string].map((msg: { from: string | null; messageBody: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; _id: string }) => {
+                    const isFromSelfMsg = msg.from === auth.id;
+                    return (<SingleMessage align={isFromSelfMsg ? 'flex-end' : 'flex-start'} key={msg._id}>
+                        {msg.messageBody}
+                    </SingleMessage>)
+                })}
+                <div ref={containerRef}></div>
+            </MessagesContainer>
             <SendBox onSubmit={handleSubmit}>
-                <MessageInput value={messageText} onChange={(e) => setMessageText(e.target.value)}></MessageInput>
-                <MessageInput type="submit"></MessageInput>
+                <MessageInput
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                ></MessageInput>
+                <MessageInput type='submit'></MessageInput>
             </SendBox>
-        </MessagesContainer>
+        </>
     );
+
+
 };
 
 export default observer(PrivateRoom);

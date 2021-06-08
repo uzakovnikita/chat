@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { action, makeAutoObservable } from "mobx";
 import { URLS } from "../constants/enums";
 
 export class Auth {
@@ -26,9 +26,13 @@ export class Auth {
             });
             const result = await res.json();
             if (res.ok) {
-                this.isLogin = true;
-                this.name = name;
-                this.id = String(result.userID);
+                const ctx = this;
+                action(() => {
+                    ctx.isLogin = true;
+                    ctx.name = name;
+                    ctx.id = String(result.userID);
+                })()
+
             } else {
                 throw new Error(`fetching is not success, status: ${res.status}`)
             }

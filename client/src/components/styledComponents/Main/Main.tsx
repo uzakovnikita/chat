@@ -8,6 +8,7 @@ const Main = styled.main`
     margin: 0 auto;
     padding: 20px 20px 0;
     height: 100%;
+    box-sizing: border-box;
 `;
 
 export default Main;
