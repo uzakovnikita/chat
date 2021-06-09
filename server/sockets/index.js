@@ -23,7 +23,6 @@ io.on('connection', async (socket) => {
                 ...idsOfMessages
             ]
         }});
-        socket.emit('initial message', {messages});
     });
     socket.on('leave', (data) => {
         socket.leave(data.room);

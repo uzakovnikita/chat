@@ -11,6 +11,12 @@ const Card = styled.div<StyledProps>`
     margin-bottom: 20px;
     cursor: pointer;
     transition: 0.2s;
+    font-size: 16px;
+    font-family: ${props => props.theme.fonts.primary};
+    font-weight: 600;
+    color: ${props =>props.theme.colors['blue-3a-c2']};
+    display: flex;
+    align-items: center;
     &:hover {
         background-color: ${props => props.theme.colors['secondary-bg']};
     }

@@ -2,8 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\client",
-    "\\client\\src"
+    "\\client\\src",
+    "\\client\\src\\components\\PrivateRoom",
+    "\\client\\src\\components\\styledComponents",
+    "\\client\\src\\components\\styledComponents\\Title",
+    "\\client\\src\\static",
+    "\\client\\src\\static\\images",
+    "\\client\\src\\store"
   ],
-  "SelectedNode": "\\client\\src\\App.tsx",
+  "SelectedNode": "\\client\\src\\static\\images\\gachimuchi.jpg",
   "PreviewInSolutionExplorer": false
 }

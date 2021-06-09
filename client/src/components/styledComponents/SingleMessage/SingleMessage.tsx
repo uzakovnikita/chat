@@ -13,7 +13,8 @@ const SingleMessage = styled.div<SingleMessageProps>`
     background-color: ${props => props.theme.colors['secondary-bg']};
     margin: 5px;
     border-radius: 5px;
-    padding: 5px;
+    padding: 8px;
+    word-break: break-word;
 `;
 
 export default SingleMessage;

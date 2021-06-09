@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable, action } from 'mobx';
+import { makeAutoObservable, observable, action, runInAction } from 'mobx';
 import { io } from 'socket.io-client';
 import { URLS } from '../constants/enums';
 import { users } from '../constants/types';
@@ -39,36 +39,41 @@ export class Chat {
         this.socket.connect();
     }
 
-    join(
+    async join(
         id: string,
         interlocutorName: string,
         interlocutorId: string,
         selfId: string,
-    ) { 
+    ) {
         const ctx = this;
         this.isShowPreloader = true;
-        action(
-            () => {
+        action(() => {
+            ctx.isPrivateRoom = true;
+            ctx.idCurrentPrivateRoom = id;
+            ctx.interlocutorName = interlocutorName;
+            ctx.interlocutorId = interlocutorId;
+        })()
+        await action(
+            async () => {
                 if (!ctx.messages[id]) {
                     ctx.messages[id] = observable([]);
-                    ctx.socket.on('initial message', ({ messages }) => {
-                        action(() => {
-                            messages.forEach((message: Message) => {
-                                ctx.messages[message.room].push(message);
-                            });
-                            ctx.isShowPreloader = false;
-                        })()
+                    const searchUrl = new URL(URLS.Messages);
+                    searchUrl.searchParams.set('userID', selfId);
+                    searchUrl.searchParams.set('roomId', id);
+                    const resp = await fetch(String(searchUrl), {
+                        mode: 'cors',
                     });
-                } else {
-                    ctx.messages[id].clear(0);
+                    if (resp.ok) {
+                        const { messages } = await resp.json();
+                        runInAction(() => messages.forEach((msg: Message) => {
+                            this.messages[msg.room].push(msg);
+                        }))
+                    }
                 }
                 ctx.socket.emit('join', { room: id, selfId });
-                ctx.isPrivateRoom = true;
-                ctx.idCurrentPrivateRoom = id;
-                ctx.interlocutorName = interlocutorName;
-                ctx.interlocutorId = interlocutorId;
             }
         )()
+        this.isShowPreloader = false;
     }
 
     leave() {
@@ -119,7 +124,7 @@ export class Chat {
     }
 
     get countMessage() {
-        return this.messages[this.idCurrentPrivateRoom as string].length
+        return this.messages[this.idCurrentPrivateRoom as string]?.length ? this.messages[this.idCurrentPrivateRoom as string]?.length : 0;
     }
 }
 

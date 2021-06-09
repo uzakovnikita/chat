@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 
 import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
+import Title from '../styledComponents/Title';
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
@@ -24,8 +25,8 @@ const Rooms: FunctionComponent = () => {
 
     return (
         <>
-            Users List
-            <Flex width='100%' height='100%'>
+            <Title>Users List</Title>
+            <Flex width='100%' height='100%' justify='flex-start'>
                 {chat.rooms.map(
                     ({ roomId, interlocutorName, interlocutorId }) => {
                         return <Card key={roomId} onClick={handleUserClick(roomId, interlocutorName, interlocutorId)}>{interlocutorName}</Card>;

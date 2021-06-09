@@ -11,7 +11,16 @@ export class Auth {
     err: string = '';
     id: null | string = null;
 
+    initAuth() {
+        action(() => {
+            this.id = localStorage.getItem('userID');
+            this.name = localStorage.getItem('name');
+            this.isLogin = !!this.name;
+        })()
+    }
+
     async login(name: string, password: string) {
+        const ctx = this;
         try {
             const res = await fetch(URLS.Login, {
                 method: 'POST',
@@ -26,11 +35,12 @@ export class Auth {
             });
             const result = await res.json();
             if (res.ok) {
-                const ctx = this;
                 action(() => {
                     ctx.isLogin = true;
                     ctx.name = name;
                     ctx.id = String(result.userID);
+                    localStorage.setItem('name', name);
+                    localStorage.setItem('userID', result.userID);
                 })()
 
             } else {
@@ -45,6 +55,8 @@ export class Auth {
     signOut() {
         this.isLogin = false;
         this.name = null;
+        localStorage.removeItem('name');
+        localStorage.removeItem('userID');
     }
 };
 

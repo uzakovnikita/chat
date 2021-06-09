@@ -1,4 +1,4 @@
-import { FunctionComponent, useContext } from "react";
+import { FunctionComponent, useContext, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import AuthPage from "./pages/authPage";
 import ChatPage from './pages/chatPage';
@@ -9,6 +9,9 @@ import { Auth } from "./store/auth";
 
 const App: FunctionComponent = () => {
     const auth = useContext(ContextAuth) as Auth;
+    useEffect(() => {
+        auth.initAuth();
+    }, []);
     return (
         <Main>
             {auth.isLogin && <ChatPage/>}

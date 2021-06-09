@@ -10,10 +10,11 @@ const Img = styled.img`
     rigth: 0;
     bottom: 0;
     margin: auto;
+    z-index: 10;
 `
 const Preloader: FunctionComponent = () => {
     return (
-        <Img src="../../static/images/gachimuchi.jpg" alt="чё с деньгами?"></Img>
+        <Img src="/images/gachimuchi.jpg" alt="чё с деньгами?"/>
     )
 };
 
