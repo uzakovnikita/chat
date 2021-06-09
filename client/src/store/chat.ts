@@ -21,6 +21,7 @@ export class Chat {
     interlocutorName: string | null = null;
     interlocutorId: string | null = null;
     isSubscribedOnPrivateMessage: boolean = false;
+    isShowPreloader = false;
 
     messages: {
         [key: string]: any;
@@ -45,6 +46,7 @@ export class Chat {
         selfId: string,
     ) { 
         const ctx = this;
+        this.isShowPreloader = true;
         action(
             () => {
                 if (!ctx.messages[id]) {
@@ -54,6 +56,7 @@ export class Chat {
                             messages.forEach((message: Message) => {
                                 ctx.messages[message.room].push(message);
                             });
+                            ctx.isShowPreloader = false;
                         })()
                     });
                 } else {
@@ -64,7 +67,6 @@ export class Chat {
                 ctx.idCurrentPrivateRoom = id;
                 ctx.interlocutorName = interlocutorName;
                 ctx.interlocutorId = interlocutorId;
-                
             }
         )()
     }
@@ -114,6 +116,10 @@ export class Chat {
                 this.messages[message.room].push(message);
             });
         }
+    }
+
+    get countMessage() {
+        return this.messages[this.idCurrentPrivateRoom as string].length
     }
 }
 

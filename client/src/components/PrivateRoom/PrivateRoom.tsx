@@ -13,6 +13,7 @@ import MessagesContainer from '../styledComponents/MessagesContainer';
 import MessageInput from '../../components/styledComponents/MessageInput';
 import SendBox from '../../components/styledComponents/SendBox';
 import SingleMessage from '../styledComponents/SingleMessage';
+import Preloader from '../Preloader';
 
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
@@ -31,25 +32,27 @@ const PrivateRoom: FunctionComponent = () => {
     };
 
     useEffect(() => {
-        chat.listenMessages(); 
-    }, []);
+        chat.listenMessages();
+    }, [chat]);
     
-    useEffect(() => {
-        containerRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, []);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        if (containerRef.current && chat.countMessage > 0) {
+            console.log(containerRef.current.clientHeight)
+            containerRef.current.scrollTop = containerRef.current.clientHeight;
+        }
+    }, [chat.countMessage])
     return (
         <>  
             <Title>{chat.interlocutorName}</Title>
-            <MessagesContainer  id="messages-container">
+            <MessagesContainer ref={containerRef}>
                 {chat.messages[chat.idCurrentPrivateRoom as string].map((msg: { from: string | null; messageBody: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined; _id: string }) => {
                     const isFromSelfMsg = msg.from === auth.id;
                     return (<SingleMessage align={isFromSelfMsg ? 'flex-end' : 'flex-start'} key={msg._id}>
                         {msg.messageBody}
                     </SingleMessage>)
                 })}
-                <div ref={containerRef}></div>
             </MessagesContainer>
             <SendBox onSubmit={handleSubmit}>
                 <MessageInput
@@ -60,8 +63,6 @@ const PrivateRoom: FunctionComponent = () => {
             </SendBox>
         </>
     );
-
-
 };
 
 export default observer(PrivateRoom);

@@ -12,3 +12,8 @@ html, body, #root {
 input, span, div, p, li, ul, button {
     box-sizing: border-box;
 }
+
+#messages-container {
+    overflow-y: scroll;
+    height: 60vh;
+}
