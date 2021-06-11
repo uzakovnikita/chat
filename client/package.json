@@ -15,9 +15,11 @@
     "@types/socket.io": "^2.1.13",
     "@types/styled-components": "^5.1.9",
     "axios": "^0.21.1",
+    "babel": "^6.23.0",
     "mobx": "^6.3.1",
     "mobx-react": "^7.2.0",
     "mobx-react-lite": "^3.2.0",
+    "next": "^10.2.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-query": "^3.15.2",
@@ -33,7 +35,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "next dev"
   },
   "eslintConfig": {
     "extends": [
@@ -54,6 +57,56 @@
     ]
   },
   "devDependencies": {
-    "@types/react-router-dom": "^5.1.7"
+    "@types/react-router-dom": "^5.1.7",
+    "babel-plugin-styled-components": "^1.12.0"
+  },
+  "babel": {
+    "env": {
+      "development": {
+        "presets": [
+          "next/babel"
+        ],
+        "plugins": [
+          [
+            "babel-plugin-styled-components",
+            {
+              "ssr": true,
+              "displayName": true,
+              "preprocess": false
+            }
+          ]
+        ]
+      },
+      "production": {
+        "plugins": [
+          [
+            "babel-plugin-styled-components",
+            {
+              "ssr": true,
+              "displayName": true,
+              "preprocess": false
+            }
+          ]
+        ],
+        "presets": [
+          "next/babel"
+        ]
+      },
+      "test": {
+        "presets": [
+          "next/babel"
+        ]
+      }
+    },
+    "plugins": [
+      [
+        "babel-plugin-styled-components",
+        {
+          "ssr": true,
+          "displayName": true,
+          "preprocess": false
+        }
+      ]
+    ]
   }
 }
