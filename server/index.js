@@ -1,5 +1,4 @@
 const {server} = require('./app');
-
 require('./db/index');
 
 const PORT = process.env.PORT || 1000;
@@ -13,6 +12,7 @@ const PORT = process.env.PORT || 1000;
       console.log(`server has been started on PORT ${PORT}`);
     });
   } catch(err) {
+
     console.log(err)
   }
 })();

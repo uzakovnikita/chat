@@ -7,15 +7,15 @@ const messageSchema = new Schema({
         required: true,
     },
     from: {
-        refs: 'users',
+        ref: 'users',
         type: Schema.Types.ObjectId,
     },
     to: {
-        refs: 'users',
+        ref: 'users',
         type: Schema.Types.ObjectId,
     },
     room: {
-        refs: 'rooms',
+        ref: 'rooms',
         type: Schema.Types.ObjectId,
     },
 });

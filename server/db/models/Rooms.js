@@ -1,19 +1,27 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const { Schema, model, models } = require('mongoose');
 
 const roomsSchema = new Schema({
     members: [
         user = {
-            refs: 'users',
+            ref: 'users',
             type: Schema.Types.ObjectId
         },
     ],
     messages: [
         message = {
-            refs: 'messages',
+            ref: 'messages',
             type: Schema.Types.ObjectId
         },
     ],
 });
 
-module.exports = mongoose.model('rooms', roomsSchema);
+let Room;
+
+if (models.rooms) {
+    Room = model('rooms');
+} else {
+    Room = model('rooms', roomsSchema);
+}
+
+module.exports = Room;
+

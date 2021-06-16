@@ -7,19 +7,19 @@ export class Auth {
     }
 
     isLogin = false;
-    name: null | string = null;
+    email: null | string = null;
     err: string = '';
     id: null | string = null;
 
     initAuth() {
         action(() => {
             this.id = localStorage.getItem('userID');
-            this.name = localStorage.getItem('name');
-            this.isLogin = !!this.name;
+            this.email = localStorage.getItem('email');
+            this.isLogin = !!this.email;
         })()
     }
 
-    async login(name: string, password: string) {
+    async login(email: string, password: string) {
         const ctx = this;
         try {
             const res = await fetch(URLS.Login, {
@@ -29,7 +29,7 @@ export class Auth {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    name: name.trim(),
+                    email: email.trim(),
                     password: password.trim()
                 })
             });
@@ -37,9 +37,9 @@ export class Auth {
             if (res.ok) {
                 action(() => {
                     ctx.isLogin = true;
-                    ctx.name = name;
+                    ctx.email = email;
                     ctx.id = String(result.userID);
-                    localStorage.setItem('name', name);
+                    localStorage.setItem('email', email);
                     localStorage.setItem('userID', result.userID);
                 })()
 
@@ -54,7 +54,7 @@ export class Auth {
 
     signOut() {
         this.isLogin = false;
-        this.name = null;
+        this.email = null;
         localStorage.removeItem('name');
         localStorage.removeItem('userID');
     }

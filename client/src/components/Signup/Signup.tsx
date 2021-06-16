@@ -17,19 +17,20 @@ const SignupContainer = styled.div`
 `
 
 const Signup: FunctionComponent = () => {
-    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(name)
+        console.log(email)
         const response = await fetch(URLS.Signup, {
             method: 'POST',
             mode: 'cors',
+            credentials: 'include',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: name.trim(),
+                email: email.trim(),
                 password: password.trim()
             })
         });
@@ -40,7 +41,7 @@ const Signup: FunctionComponent = () => {
         <SignupContainer>
             <Text>Signup</Text>
             <AuthForm onSubmit={handleSignup}>
-                <AuthInput type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
+                <AuthInput type="text" value={email} placeholder="введите логин" onChange={(e) =>setEmail(e.target.value)}/>
                 <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
                 <Button type="submit">Зарегистрироваться</Button>
             </AuthForm>

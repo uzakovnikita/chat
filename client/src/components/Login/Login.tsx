@@ -20,13 +20,13 @@ const SignupContainer = styled.div`
 `
 
 const Login: FunctionComponent = () => {
-    const [name, setName] = useState('');
+    const [email, setName] = useState('');
     const [password, setPassword] = useState('');
     const auth = useContext(ContextAuth) as Auth;
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await auth.login(name, password);
+            await auth.login(email, password);
         } catch (err) {
             alert(`login failed with error, try refresh this page`)
             console.log(err);
@@ -36,7 +36,7 @@ const Login: FunctionComponent = () => {
         <SignupContainer>
             <Text>Login</Text>
             <AuthForm onSubmit={handleLogin}>
-                <AuthInput type="text" value={name} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
+                <AuthInput type="email" value={email} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
                 <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
                 <Button type="submit">Войти</Button>
             </AuthForm>
