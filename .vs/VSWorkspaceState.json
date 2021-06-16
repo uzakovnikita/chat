@@ -3,13 +3,8 @@
     "",
     "\\client",
     "\\client\\src",
-    "\\client\\src\\components\\PrivateRoom",
-    "\\client\\src\\components\\styledComponents",
-    "\\client\\src\\components\\styledComponents\\Title",
-    "\\client\\src\\static",
-    "\\client\\src\\static\\images",
     "\\client\\src\\store"
   ],
-  "SelectedNode": "\\client\\src\\static\\images\\gachimuchi.jpg",
+  "SelectedNode": "\\client\\src\\store",
   "PreviewInSolutionExplorer": false
 }
