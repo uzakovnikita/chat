@@ -8,12 +8,15 @@ const Rooms = require('../db/models/rooms');
 const MailService = require('./mail-service');
 const tokenService = require('./token-service');
 
-const AlreadyExists = require('../errorClasses/AlreadyExists');
-const NotValidActivateLink = require('../errorClasses/NotValidActivateLink');
+const ApiError = require('../exceptions/api-error');
 
 const keys = require('../config/keys');
 
 class UserService {
+
+    static getDto(user) {
+        return { email: user.email, id: user._id, isActivated: user.isActivated };
+    }
 
     async createUserInTransaction(user) {
         const users = await User.find();
@@ -41,14 +44,12 @@ class UserService {
 
         const candidate = await User.findOne({ email });
 
-        const salt = bcrypt.genSaltSync(10);
-
         if (candidate) {
-            throw new AlreadyExists('User already exists');
+            throw ApiError.BadRequest('User already exists');
         }
 
         const activationLink = uuid.v4();
-
+        const salt = bcrypt.genSaltSync(10);
         const user = await new User({
             email,
             password: bcrypt.hashSync(password, salt),
@@ -59,7 +60,7 @@ class UserService {
         
         await MailService.sendActiovationMail(email, `${keys.API_URL}/api/activate/${activationLink}`);
 
-        const dto = { email, id: user._id, isActivated: user.isActivated };
+        const dto = UserService.getDto(user);
 
         const tokens = tokenService.generateTokens(dto);
         await tokenService.saveToken(dto.id, tokens.refreshToken);
@@ -70,10 +71,50 @@ class UserService {
     async activate(activationLink) {
         const user = User.findOne({activationLink});
         if (!user) {
-            throw new NotValidActivateLink();
+            throw new ApiError.BadRequest('User with this activation link is not exists');
         }
         user.isActivated = true;
         await user.save();
+    }
+
+    async login(email, password) {
+        const user = await User.findOne({email});
+        if (user) {
+            throw ApiError.BadRequest('User is not found');
+        }
+        const isEqualPassword = await bcrypt.compare(password, user.password);
+        if (!isEqualPassword) {
+            throw ApiError.BadRequest('Wrong password');
+        }
+        const dto = UserService.getDto(user);
+        const tokens = tokenService.generateTokens(dto);
+
+        await tokenService.saveToken(dto.id, tokens.refreshToken);
+        
+        return { ...tokens, user: dto };
+    }
+
+    async logout(refreshToken) {
+        const token = await tokenService.removeToken(refreshToken);
+        return token;
+    }
+
+    async refreshToken(refreshToken) {
+        if (!refreshToken) {
+            throw ApiError.UnauthorizedError('Token is empty');
+        }
+        const tokenFromDb = tokenService.findRefreshToken({refreshToken});
+        const userData = tokenService.validateRefreshToken(refreshToken); 
+        if (!tokenFromDb || !userData) {
+            throw ApiError.UnauthorizedError('Not valid refresh token');
+        }
+        const user = User.findById(user.id);
+        const dto = UserService.getDto(user);
+        const tokens = tokenService.generateTokens(dto);
+
+        await tokenService.saveToken(dto.id, tokens.refreshToken);
+        
+        return { ...tokens, user: dto };
     }
 }
 
