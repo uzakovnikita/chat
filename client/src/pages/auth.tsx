@@ -1,13 +1,21 @@
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent, useState, useEffect } from 'react';
+import { useRouter } from 'next/router'
 
 import Login from '../components/Login';
 import Signup from '../components/Signup';
 import Button from '../components/styledComponents/Button';
 import Flex from '../components/styledComponents/Flex';
 
-const AuthPage: FunctionComponent = (props) => {
+const AuthPage: FunctionComponent<{status: boolean}> = (props) => {
     const [view, setView] = useState(false);
-    console.log(props)
+    const router = useRouter();
+
+    useEffect(() => {
+        if (props.status) {
+            router.push('/');
+        }
+    }, [])
+
     return (
         <Flex width='100%' height='100%'>
             <Button onClick={() => setView((prevState) => !prevState)}>
@@ -28,20 +36,21 @@ export async function getServerSideProps () {
         if (response.ok) {
             return {
                 props: {
-                    message: 'ok'
+                    status: true
+                }
+            }
+        } else {
+            return {
+                props: {
+                    status: false
                 }
             }
         }
     } catch (err) {
         return {
             props: {
-                message: JSON.stringify(err, null, 2)
+                status: false
             }
-        }
-    }
-    return {
-        props: {
-            message: JSON.stringify(response.status)
         }
     }
 }
