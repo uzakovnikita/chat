@@ -1,9 +1,12 @@
-const roomService = require('../db/models/Rooms');
+const roomService = require('../service/room-service');
+const tokenService = require('../service/token-service');
 
 module.exports.rooms = async function (req, res, next) {
-    const { userId } = req.body;
+    const authorizationHeader = req.headers.authorization;
+    const accessToken = authorizationHeader.split(' ')[1];
     try {
-        const dialogs = await roomService.getDialogs(userId);
+        const {user} = tokenService.validateAccessToken(accessToken);
+        const dialogs = await roomService.getDialogs(user);
         return res.json({
             message: 'get rooms success',
             dialogs,

@@ -4,9 +4,10 @@ export type StyledProps  = {
     align: string;
     [key: string]: string | ((e: Event) => void),
 };
-export type Message =  {
-    from: string,
-    to: string,
-    messageBody: string,
-    room: string,
-};
+
+type GenericSingleTypeValuesInObject<T> = {
+    [key: string]: T
+}
+
+export type Message = GenericSingleTypeValuesInObject<string>;
+export type Room = GenericSingleTypeValuesInObject<string>;

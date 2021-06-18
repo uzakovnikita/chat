@@ -1,15 +1,17 @@
-import { makeAutoObservable, observable, action, runInAction } from 'mobx';
-import { io } from 'socket.io-client';
-import { URLS } from '../constants/enums';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
+
+import socketService from '../serivces/SocketService';
+import MessagesService from '../serivces/MessagesService';
+import DialogService from '../serivces/DialogsService';
+
 import { users } from '../constants/types';
-import { Message } from '../constants/types';
 
 export class Chat {
     constructor() {
         makeAutoObservable(this);
     }
     users: users = [];
-    socket = io(URLS.SocketServer, { autoConnect: false });
+
     error: string | null = null;
     rooms: {
         roomId: string;
@@ -31,12 +33,8 @@ export class Chat {
         this.error = error;
     }
 
-    connect(id: string | null) {
-        if (!id) {
-            throw new Error('id is not exist. please refresh this page');
-        }
-        this.socket.auth = { userID: id };
-        this.socket.connect();
+    connect(id: string) {
+        socketService.connect(id);
     }
 
     async join(
@@ -45,82 +43,54 @@ export class Chat {
         interlocutorId: string,
         selfId: string,
     ) {
-        const ctx = this;
         this.isShowPreloader = true;
-        action(() => {
-            ctx.isPrivateRoom = true;
-            ctx.idCurrentPrivateRoom = id;
-            ctx.interlocutorName = interlocutorName;
-            ctx.interlocutorId = interlocutorId;
-        })()
-        await action(
-            async () => {
-                if (!ctx.messages[id]) {
-                    ctx.messages[id] = observable([]);
-                    const searchUrl = new URL(URLS.Messages);
-                    searchUrl.searchParams.set('userID', selfId);
-                    searchUrl.searchParams.set('roomId', id);
-                    const resp = await fetch(String(searchUrl), {
-                        mode: 'cors',
-                    });
-                    if (resp.ok) {
-                        const { messages } = await resp.json();
-                        runInAction(() => messages.forEach((msg: Message) => {
-                            this.messages[msg.room].push(msg);
-                        }))
-                    }
+        socketService.join<string>(id, selfId);
+        runInAction(async () => {
+            this.isPrivateRoom = true;
+            this.idCurrentPrivateRoom = id;
+            this.interlocutorName = interlocutorName;
+            this.interlocutorId = interlocutorId;
+            if (!this.messages[id]) {
+                this.messages[id] = observable([]);
+                try {
+                    const messages = await MessagesService.getMessages(id);
+                    runInAction(() => {
+                        console.log()
+                        // TODO: fill this.messages
+                    })
+                } catch (err) {
+                    alert('oops, please refresh page');
+                    console.log(err);
                 }
-                ctx.socket.emit('join', { room: id, selfId });
             }
-        )()
+        })
         this.isShowPreloader = false;
     }
 
     leave() {
-        this.socket.emit('leave', { room: this.idCurrentPrivateRoom });
-        this.isPrivateRoom = false;
+        socketService.leave(this.idCurrentPrivateRoom as string)
     }
 
     async getRooms(id: string) {
         try {
-            const response = await fetch(URLS.Rooms, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=utf-8',
-                },
-                body: JSON.stringify({ userId: id }),
-            });
-            if (response.ok) {
-                const resp = await response.json();
-                this.rooms = resp.dialogs;
-            } else {
-                throw new Error(
-                    `response failed with code: ${response.status}`,
-                );
-            }
+            this.isShowPreloader = true;
+            const rooms = await DialogService.getDialogs(id);
+            console.log(rooms);
+            // TODO: fill dialogs
         } catch (err) {
+            this.isShowPreloader = false;
             alert('response failed, try refresh page or later');
             console.log(err);
-        }
+        } 
+        this.isShowPreloader = false;
     }
 
     send(content: string, from: string) {
-        console.log('send message')
-        this.socket.emit('private message', {
-            content,
-            from,
-            to: this.interlocutorId,
-            room: this.idCurrentPrivateRoom,
-        });
+        socketService.send<string>(content, from, this.interlocutorId as string, this.idCurrentPrivateRoom as string)
     }
 
     listenMessages() {
-        if (!this.isSubscribedOnPrivateMessage) {
-            this.isSubscribedOnPrivateMessage = true;
-            this.socket.on('private message', (message: Message) => {
-                this.messages[message.room].push(message);
-            });
-        }
+        socketService.listenMessages(this.messages)
     }
 
     get countMessage() {
