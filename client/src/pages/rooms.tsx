@@ -25,7 +25,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const {status, user} = await isLogin(context);
     if (status) {
         const myHeaders = new Headers();
-        myHeaders.append('Authorization', `Bearer ${user.acessToken}`)
+        myHeaders.append('Authorization', `Bearer ${user.user.accessToken}`)
         const dialogs = await fetch(URLS.Rooms, {
             method: 'POST',
             headers: myHeaders,

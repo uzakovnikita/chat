@@ -5,8 +5,8 @@ module.exports.rooms = async function (req, res, next) {
     const authorizationHeader = req.headers.authorization;
     const accessToken = authorizationHeader.split(' ')[1];
     try {
-        const {user} = tokenService.validateAccessToken(accessToken);
-        const dialogs = await roomService.getDialogs(user);
+        const user = await tokenService.validateAccessToken(accessToken);
+        const dialogs = await roomService.getDialogs(user.id);
         return res.json({
             message: 'get rooms success',
             dialogs,

@@ -64,7 +64,6 @@ module.exports.isLogin = async function (req, res, next) {
     try {
         const refreshToken = req.cookies.refreshToken || req.headers.authorization.split(' ')[1];
         const userData = await userService.isLogined(refreshToken);
-        console.log(`userData in isLogin in authController ${JSON.stringify(userData, null, 2)}`)
         return res.json({message: 'check is succes', user: {...userData}});
     } catch (err) {
         next(err);
