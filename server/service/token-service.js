@@ -11,11 +11,14 @@ class TokenService {
     }
     async saveToken(userId, refreshToken) {
         const tokenData = await tokenModel.findOne({user: userId});
+        console.log(`tokenData in saveToken in token-service = ${JSON.stringify(tokenData, 2, null)}`)
         if (tokenData) {
             tokenData.refreshToken = refreshToken;
-            return tokenData.save();
+            await tokenData.save();
+            return tokenData;
         }
         const token = await tokenModel.create({user: userId, refreshToken});
+        console.log(`token in saveToken in token-service = ${JSON.stringify(token, 2, null)}`);
         return token;
     }
     async removeToken(refreshToken) {
@@ -24,7 +27,9 @@ class TokenService {
     }
     async validateRefreshToken(refreshToken) {
         try {
-            const userData = jwt.verify(refreshToken, keys.JWT_REFRESH_SECRET);
+            const userData = jwt.verify(refreshToken, keys.JWT_REFRESH_SECRET, {
+                maxAge: '30m'
+            });
             return userData;
         } catch (err) {
             return null;
@@ -32,7 +37,9 @@ class TokenService {
     }
     async validateAccessToken(accessToken) {
         try {
-            const userData = jwt.verify(accessToken, keys.JWT_ACCESS_SECRET);
+            const userData = jwt.verify(accessToken, keys.JWT_ACCESS_SECRET, {
+                maxAge: '15m'
+            });
             return userData;
         } catch (err) {
             return null;

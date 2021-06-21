@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from "mobx-react"
 
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
 import AuthForm from '../../components/styledComponents/AuthForm';
@@ -23,10 +24,14 @@ const Login: FunctionComponent = () => {
     const [email, setName] = useState('');
     const [password, setPassword] = useState('');
     const auth = useContext(ContextAuth) as Auth;
+    const router = useRouter();
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await auth.login(email, password);
+            router.push('/rooms', undefined, {
+                shallow: true
+            });
         } catch (err) {
             alert(`login failed with error, try refresh this page`)
             console.log(err);

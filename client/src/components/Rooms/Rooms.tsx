@@ -1,4 +1,4 @@
-import { FunctionComponent, useContext, useEffect } from 'react';
+import { FunctionComponent, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import Flex from '../styledComponents/Flex';
@@ -8,20 +8,24 @@ import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
 
-const Rooms: FunctionComponent = () => {
+
+
+
+
+const Rooms: FunctionComponent<any> = (props) => {
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
 
-    const handleUserClick = (roomId: string, interlocutorName: string, interlocutorId: string) => (): void => {
-        chat.join(roomId, interlocutorName, interlocutorId, auth.id as string);
-    };
-
-    useEffect(() => {
-        (async () => {
-            const { id } = auth;
-            await chat.getRooms(id as string);
-        })();
-    }, [auth, chat]);
+    const handleUserClick =
+        (roomId: string, interlocutorName: string, interlocutorId: string) =>
+        (): void => {
+            chat.join(
+                roomId,
+                interlocutorName,
+                interlocutorId,
+                auth.id as string,
+            );
+        };
 
     return (
         <>
@@ -29,7 +33,18 @@ const Rooms: FunctionComponent = () => {
             <Flex width='100%' height='100%' justify='flex-start'>
                 {chat.rooms.map(
                     ({ roomId, interlocutorName, interlocutorId }) => {
-                        return <Card key={roomId} onClick={handleUserClick(roomId, interlocutorName, interlocutorId)}>{interlocutorName}</Card>;
+                        return (
+                            <Card
+                                key={roomId}
+                                onClick={handleUserClick(
+                                    roomId,
+                                    interlocutorName,
+                                    interlocutorId,
+                                )}
+                            >
+                                {interlocutorName}
+                            </Card>
+                        );
                     },
                 )}
             </Flex>
@@ -38,3 +53,14 @@ const Rooms: FunctionComponent = () => {
 };
 
 export default observer(Rooms);
+
+
+// [
+//     {
+//         members: string[];
+//         messages: {
+//             [key: string]: any;
+//         }[];
+//         _id: string,
+//     },
+// ]

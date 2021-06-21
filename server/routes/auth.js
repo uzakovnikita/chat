@@ -13,5 +13,6 @@ router.post(
 );
 router.get('/logout', controllers.logout);
 router.get('/refresh', controllers.refresh);
+router.get('/islogin', controllers.isLogin);
 
 module.exports = router;
