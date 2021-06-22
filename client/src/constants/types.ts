@@ -5,9 +5,12 @@ export type StyledProps  = {
     [key: string]: string | ((e: Event) => void),
 };
 
-type GenericSingleTypeValuesInObject<T> = {
-    [key: string]: T
+// export type Message = GenericSingleTypeValuesInObject<string>;
+export type message = {
+    from: string,
+    to: string,
+    room: string,
+    messageBody: string,
+    _id: string,
 }
-
-export type Message = GenericSingleTypeValuesInObject<string>;
-export type Room = GenericSingleTypeValuesInObject<string>;
+export type room = { roomId: string; interlocutorName: string; interlocutorId: string; };

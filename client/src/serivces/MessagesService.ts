@@ -1,12 +1,12 @@
 import {api} from '../http/index';
 import { AxiosResponse } from 'axios';
 
-import { Message } from '../constants/types';
+import { message } from '../constants/types';
 
 export default class MessagesService {
 
-    static async getMessages(roomId: string): Promise<AxiosResponse<Message[]>> {
-        return api.post<Message[], AxiosResponse<Message[]>>('/messages', { roomId })
+    static async getMessages(roomId: string): Promise<AxiosResponse<message[]>> {
+        return api.get<message[], AxiosResponse<message[]>>(`/messages?roomId=${roomId}`)
     }
 };
 

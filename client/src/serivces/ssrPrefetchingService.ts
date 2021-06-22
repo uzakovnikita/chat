@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from 'next';
 import { ParsedUrlQuery } from 'querystring';
 import { URLS } from '../constants/enums';
+import {message, room} from '../constants/types';
 
 export const isLogin = async (
     context: GetServerSidePropsContext<ParsedUrlQuery>,
@@ -47,12 +48,22 @@ export const isLogin = async (
 
 export const fetchDialogs = async (
     accessToken: string,
-): Promise<{ [key: string]: any }[]> => {
+): Promise<{message: string, dialogs: room[]}> => {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${accessToken}`);
     const dialogs = await fetch(URLS.Rooms, {
-        method: 'POST',
+        method: 'GET',
         headers: myHeaders,
     }).then((result) => result.json());
     return dialogs;
 };
+
+export const fetchMessages = async (accessToken: string, id: string): Promise<message[]> => {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${accessToken}`);
+    const messages = await fetch(`${URLS.Messages}?roomId=${id}`, {
+        method: 'GET',
+        headers: myHeaders
+    }).then((result) => result.json());
+    return messages;
+}

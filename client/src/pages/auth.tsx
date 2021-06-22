@@ -1,6 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { GetServerSideProps } from 'next'
-import {isLogin} from '../serivces/ssrAuthService';
+
+import {isLogin} from '../serivces/ssrPrefetchingService';
 
 import useAuth from '../hooks/useAuth';
 

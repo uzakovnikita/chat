@@ -40,7 +40,6 @@ module.exports.login = async function (req, res, next) {
 module.exports.logout = async function (req, res, next) {
     try {
         const { refreshToken } = req.cookies;
-        console.log(`refresh token in logout controller from cookies ${refreshToken}`);
         const token = await userService.logout(refreshToken);
         res.clearCookie('refreshToken');
         res.status(200).json({message: 'Logout success'});
@@ -53,8 +52,10 @@ module.exports.refresh = async function (req, res, next) {
     try {
         const refreshToken = req.cookies.refreshToken || req.headers.authorization.split(' ')[1];
         const userData = await userService.refreshToken(refreshToken);
-        console.log(`userData in refresh in auth controllers ${userData}`);
-        return res.json({message: 'success refreshed', refreshToken: userData.refreshToken});
+        return res.status(200).cookie('refreshToken', userData.refreshToken, {
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+        }).json({message: 'success refresh'});
     } catch (err) {
         next(err);
     }

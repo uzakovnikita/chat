@@ -51,7 +51,7 @@ const PrivateRoom: FunctionComponent = () => {
                 <>
                     <Title>{chat.interlocutorName}</Title>
                     <MessagesContainer ref={containerRef}>
-                        {chat.messages[chat.idCurrentPrivateRoom as string].map((msg: { from: string; messageBody: string; _id: string }) => {
+                        {chat.messages.map((msg: { from: string; messageBody: string; _id: string }) => {
                             const isFromSelfMsg = msg.from === auth.id;
                             return (<SingleMessage align={isFromSelfMsg ? 'flex-end' : 'flex-start'} key={msg._id}>
                                 {msg.messageBody}

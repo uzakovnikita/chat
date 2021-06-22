@@ -8,7 +8,7 @@ class RoomService {
             const users = await User.find();
             const dialogs = rooms.map(room => {
                         const interlocutorId = room.members.filter(id => String(id) !== String(userId))[0];
-                        const interlocutorName = users.find(({_id}) => String(_id) === String(interlocutorId)).name;
+                        const interlocutorName = users.find(({_id}) => String(_id) === String(interlocutorId)).email;
                         return {roomId: room._id, interlocutorName, interlocutorId};
                     });
             return dialogs;

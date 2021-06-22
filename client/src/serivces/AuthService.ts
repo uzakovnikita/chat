@@ -12,6 +12,10 @@ export default class AuthService {
         return api.post<IAuthResponse>('/auth/register', {email, password})
     }
 
+    static async refresh(): Promise<void> {
+        api.get('/auth/refresh');
+    }
+
     static async logout(): Promise<void> {
         return api.get('/logout');
     }

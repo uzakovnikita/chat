@@ -4,7 +4,7 @@ import socketService from '../serivces/SocketService';
 import MessagesService from '../serivces/MessagesService';
 import DialogService from '../serivces/DialogsService';
 
-import { users } from '../constants/types';
+import { users, room, message } from '../constants/types';
 
 export class Chat {
     constructor() {
@@ -13,21 +13,16 @@ export class Chat {
     users: users = [];
 
     error: string | null = null;
-    rooms: {
-        roomId: string;
-        interlocutorName: string;
-        interlocutorId: string;
-    }[] = [];
+    rooms: room[] = [];
     isPrivateRoom: boolean = false;
     idCurrentPrivateRoom: string | null = null;
     interlocutorName: string | null = null;
     interlocutorId: string | null = null;
     isSubscribedOnPrivateMessage: boolean = false;
     isShowPreloader = false;
+    isSsrGidrated = false;
 
-    messages: {
-        [key: string]: any;
-    } = observable({});
+    messages: message[] = observable([]);
 
     registrError(error: string) {
         this.error = error;
@@ -50,12 +45,12 @@ export class Chat {
             this.idCurrentPrivateRoom = id;
             this.interlocutorName = interlocutorName;
             this.interlocutorId = interlocutorId;
-            if (!this.messages[id]) {
-                this.messages[id] = observable([]);
+            if (!this.messages) {
+                this.messages = observable([]);
                 try {
-                    const messages = await MessagesService.getMessages(id);
+                    const messages = (await MessagesService.getMessages(id)).data;
                     runInAction(() => {
-                        console.log()
+                        console.log(messages)
                         // TODO: fill this.messages
                     })
                 } catch (err) {
@@ -95,6 +90,10 @@ export class Chat {
 
     get countMessage() {
         return this.messages[this.idCurrentPrivateRoom as string]?.length ? this.messages[this.idCurrentPrivateRoom as string]?.length : 0;
+    }
+
+    set setRooms(rooms: rooms) {
+        this.rooms = rooms;
     }
 }
 
