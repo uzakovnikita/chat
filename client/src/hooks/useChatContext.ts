@@ -2,8 +2,8 @@ import { useContext } from "react";
 import { ContextChat } from "../store/contexts";
 
 
-const useAuthContext = () => {
+const useChatContext = () => {
     return useContext(ContextChat);
 };
 
-export default useAuthContext;
+export default useChatContext;

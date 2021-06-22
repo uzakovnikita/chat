@@ -1,35 +1,35 @@
 import { GetServerSideProps } from 'next';
 import { FunctionComponent } from 'react';
 
-import { isLogin } from '../serivces/ssrAuthService';
+import { isLogin, fetchDialogs } from '../serivces/ssrAuthService';
 import useAuth from '../hooks/useAuth';
 
 import Rooms from '../components/Rooms';
 import { URLS } from '../constants/enums';
+import { observer } from 'mobx-react-lite';
+import useChatContext from '../hooks/useChatContext';
 
 
 
 const RoomsPage: FunctionComponent<any> = (props) => {
     useAuth(!props.isLogin, '/auth');
-    console.log(props)
+    console.log(props);
+    const {dialogs} = props;
+    const trueDialogs = dialogs.dialogs;
+    const chatStore = useChatContext();
     return (
         <>  
-            <Rooms />
+            <Rooms/>
         </>
     );
 };
 
-export default RoomsPage;
+export default observer(RoomsPage);
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const {status, user} = await isLogin(context);
     if (status) {
-        const myHeaders = new Headers();
-        myHeaders.append('Authorization', `Bearer ${user.user.accessToken}`)
-        const dialogs = await fetch(URLS.Rooms, {
-            method: 'POST',
-            headers: myHeaders,
-        }).then((result) => result.json());
+        const dialogs = await fetchDialogs(user.user.accessToken);
         return {
             props: {
                 isLogin: status,
@@ -42,6 +42,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         props: {
             isLogin: status,
             user,
+            dialogs: []
         },
     };
 };
