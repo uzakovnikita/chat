@@ -9,7 +9,7 @@ import Login from '../components/Login';
 import Signup from '../components/Signup';
 import Button from '../components/styledComponents/Button';
 import Flex from '../components/styledComponents/Flex';
-
+import Main from '../components/styledComponents/Main';
 
 
 const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
@@ -17,7 +17,7 @@ const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
     useAuth(props.isLogin, '/rooms');
 
     return (
-        <>
+        <Main>
         {props.isLogin && <div></div>}
         {!props.isLogin && 
                 <Flex width='100%' height='100%'>
@@ -28,7 +28,7 @@ const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
                 {!view && <Signup />}
             </Flex>
         }
-        </>
+        </Main>
     );
 };
 

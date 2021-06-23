@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head'
 import { FunctionComponent } from 'react';
@@ -7,15 +9,17 @@ import { Chat } from '../../store/chat';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
+import useAuthContext from '../../hooks/useAuthContext';
 
 import { isLogin, fetchDialogs } from '../../serivces/ssrPrefetchingService';
 import AuthService from '../../serivces/AuthService';
 import { startInterceptor } from '../../http/index';
 
 import Rooms from '../../components/Rooms';
+import Main from '../../components/styledComponents/Main';
 
 import { room } from '../../constants/types';
-import { useEffect } from 'react';
+import { Auth } from '../../store/auth';
 
 type Props = {
     dialogs: {
@@ -40,27 +44,38 @@ type Props = {
 
 const RoomsPage: FunctionComponent<Props> = (props) => {
     useAuth(!props.isLogin, '/auth');
-    console.log(props)
     const { dialogs, user } = props;
     const trueDialogs: room[] = dialogs.dialogs;
     const chatStore = useChatContext() as Chat;
+    const authStore = useAuthContext() as Auth;
     
     if (props.isLogin) startInterceptor(user!.user.accessToken);
+
     useEffect(() => {
-        chatStore.setRooms = trueDialogs;
-        chatStore.isSsrGidrated = true;
+        if (!chatStore.isSsrGidrated) {
+            chatStore.setRooms = trueDialogs;
+            chatStore.connect(authStore.id as string);
+            chatStore.isSsrGidrated = true;
+            
+        }
         if (props.isLogin) {
+            authStore.id = user!.user.id;
             AuthService.refresh();
         }
     }, []);
+
+    useEffect(() => {
+        chatStore.audio = new Audio('/sounds/notify.mp3');
+    }, [])
+
     return (
-        <>  
+        <Main>  
             <Head>
                 <title>rooms</title>
             </Head>
             {props.isLogin && <Rooms />}
 
-        </>
+        </Main>
     );
 };
 

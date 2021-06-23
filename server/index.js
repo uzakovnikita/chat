@@ -1,5 +1,6 @@
 const {server} = require('./app');
 require('./db/index');
+require('./sockets/index');
 
 const PORT = process.env.PORT || 1000;
 
@@ -17,6 +18,6 @@ const PORT = process.env.PORT || 1000;
   }
 })();
 
-require('./sockets/index');
+
 
 

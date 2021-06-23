@@ -4,7 +4,11 @@ import chat from '../store/chat';
 import { ContextAuth, ContextChat } from '../store/contexts';
 import { theme } from '../constants/theme';
 
+import '../styles/index.css';
+
+
 export default function App({ Component, pageProps }: {Component: any, pageProps: any}) {
+
     return (
         <>
             <ThemeProvider theme={theme}>

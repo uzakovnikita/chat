@@ -1,0 +1,14 @@
+body {
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background-color: white;
+}
+
+#__next {
+    height: 100%;
+}
+
+.smooth {
+    scroll-behavior: smooth;
+}

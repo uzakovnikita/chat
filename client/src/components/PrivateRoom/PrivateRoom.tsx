@@ -13,24 +13,39 @@ import MessageInput from '../../components/styledComponents/MessageInput';
 import SendBox from '../../components/styledComponents/SendBox';
 import SingleMessage from '../styledComponents/SingleMessage';
 import Preloader from '../Preloader';
-import IconSend from '../styledComponents/Icons/IconSend';
+import SendButton from '../styledComponents/SendButton';
 
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
+import { message } from '../../constants/types';
 
-const PrivateRoom: FunctionComponent = () => {
+const PrivateRoom: FunctionComponent<{messages:message[]}> = ({messages}) => {
 
     const [messageText, setMessageText] = useState('');
-    const [isShowContent, setIsShowContent] = useState(false);
+    const [isScrolledToBottom, setScrolledToBottom] = useState(false);
+
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (messageText.length < 1) {
+            return;
+        }
         chat.send(messageText, auth.id as string);
         setMessageText('');
     };
+
+    const handleKeyUp = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            if (messageText.trim().length < 1) {
+                return;
+            }
+            chat.send(messageText, auth.id as string);
+            setMessageText('');
+        }
+    }
 
     useEffect(() => {
         chat.listenMessages();
@@ -39,19 +54,22 @@ const PrivateRoom: FunctionComponent = () => {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (containerRef.current && chat.countMessage > 0) {
+        if (containerRef.current && chat.messages.length > 0) {
             containerRef.current.scrollTo(0, containerRef.current.scrollHeight);
-            setIsShowContent(true);
+            if (!isScrolledToBottom) setScrolledToBottom(true);
         }
-    }, [chat.countMessage]);
+    }, [chat.messages.length]);
+
+
+
     return (
         <>
-            {(chat.isShowPreloader) && <Preloader />}
+            {!isScrolledToBottom && <Preloader />}
             {
                 <>
                     <Title>{chat.interlocutorName}</Title>
-                    <MessagesContainer ref={containerRef}>
-                        {chat.messages.map((msg: { from: string; messageBody: string; _id: string }) => {
+                    <MessagesContainer ref={containerRef} className={isScrolledToBottom ? 'smooth' : ''}>
+                        {messages.map((msg: { from: string; messageBody: string; _id: string }) => {
                             const isFromSelfMsg = msg.from === auth.id;
                             return (<SingleMessage align={isFromSelfMsg ? 'flex-end' : 'flex-start'} key={msg._id}>
                                 {msg.messageBody}
@@ -63,9 +81,9 @@ const PrivateRoom: FunctionComponent = () => {
                             padding={'20px'}
                             value={messageText}
                             onChange={(e) => setMessageText(e.target.value)}
+                            onKeyUp={handleKeyUp}
                         ></MessageInput>
-                        <MessageInput type='submit' padding={'20px'} img={'./images/svg/icon-send.svg'} value="">
-                        </MessageInput>
+                        <SendButton value='' type='submit' img={'/images/svg/send.svg'} img-hover={'/images/svg/send-hover.svg'}/>
                     </SendBox>
                 </>
             }
