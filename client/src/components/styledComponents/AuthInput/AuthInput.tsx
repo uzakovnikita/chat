@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 const AuthInput = styled.input`
     width: 100%;
-    height: 25px;
+    height: 30px;
     font-family: ${props => props.theme.fonts.primary};
     font-size: 16px;
     background-color: ${props => props.theme.colors['primary-bg']};
@@ -12,6 +12,7 @@ const AuthInput = styled.input`
     margin-bottom: 5px;
     padding: 5px;
     border-radius: 3px;
+    box-sizing: border-box;
 `;
 
 export default AuthInput;

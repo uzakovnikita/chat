@@ -22,7 +22,7 @@ const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
         {!props.isLogin && 
                 <Flex width='100%' height='100%'>
                 <Button onClick={() => setView((prevState) => !prevState)}>
-                    Toggle button
+                    Switch login/signup
                 </Button>
                 {view && <Login />}
                 {!view && <Signup />}

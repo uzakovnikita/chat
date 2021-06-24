@@ -21,7 +21,6 @@ const Signup: FunctionComponent = () => {
     const [password, setPassword] = useState('');
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(email)
         const response = await fetch(URLS.Signup, {
             method: 'POST',
             mode: 'cors',
@@ -35,15 +34,14 @@ const Signup: FunctionComponent = () => {
             })
         });
         const result = await response.json();
-        console.log(result);
     }
     return (
         <SignupContainer>
             <Text>Signup</Text>
             <AuthForm onSubmit={handleSignup}>
-                <AuthInput type="text" value={email} placeholder="введите логин" onChange={(e) =>setEmail(e.target.value)}/>
-                <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
-                <Button type="submit">Зарегистрироваться</Button>
+                <AuthInput type="text" value={email} placeholder="Enter login" onChange={(e) =>setEmail(e.target.value)}/>
+                <AuthInput type="password" value={password} placeholder="Enter password" onChange={(e) => setPassword(e.target.value)}/>
+                <Button type="submit">Signup</Button>
             </AuthForm>
         </SignupContainer>  
     )

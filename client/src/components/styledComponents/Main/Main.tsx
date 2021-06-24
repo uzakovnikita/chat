@@ -6,7 +6,7 @@ const Main = styled.main`
     max-width: 1020px;
     width: 100%;
     margin: 0 auto;
-    padding: 20px 20px 0;
+    padding: 20px;
     height: 100%;
     box-sizing: border-box;
 `;

@@ -20,6 +20,7 @@ export class Chat {
     isShowPreloader = false;
     isSsrGidrated = false;
     isJoined = false;
+    isFetchedMessage = false;
 
     messages: message[] = [];
     audio: any = null;

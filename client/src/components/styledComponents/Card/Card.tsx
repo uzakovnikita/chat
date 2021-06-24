@@ -1,29 +1,44 @@
 import styled from 'styled-components';
 
-import {StyledProps} from '../../../constants/types';
 
-const Card = styled.div<StyledProps>`
+
+const Card = styled.div`
     width: 100%;
     height: 80px;
-    background-color: ${props => props.theme.colors['blue-highlights']};
-    padding: 10px;
-    border-radius: 5px;
+    position: relative;
+    background: ${props => props.theme.colors['blue-grad']};
+    border-radius: ${props => props.theme.radiuses.medium};
     margin-bottom: 20px;
     cursor: pointer;
-    transition: 0.4s;
     font-size: 16px;
     font-family: ${props => props.theme.fonts.primary};
     font-weight: 600;
     color: ${props =>props.theme.colors['white']};
     display: flex;
     align-items: center;
-    border: 3px solid transparent;
-    &:hover {
-        background-color: ${props => props.theme.colors['white']};
-        border: 3px solid ${props => props.theme.colors['blue-highlights']};
-        color: ${props => props.theme.colors['blue-highlights']};
-    };
+    padding: 10px;
     box-sizing: border-box;
+
+    &:hover {
+        &:after {
+            opacity: 1;
+        }
+        
+    }
+
+    &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: ${props => props.theme.colors['light-blue-grad']};
+        border-radius: ${props => props.theme.radiuses.medium};
+        box-sizing: border-box;
+        opacity: 0;
+        transition: 1s;
+    }
 `;
 
 export default Card;

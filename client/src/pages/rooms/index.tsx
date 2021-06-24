@@ -5,6 +5,7 @@ import Head from 'next/head'
 import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
 
+
 import { Chat } from '../../store/chat';
 
 import useAuth from '../../hooks/useAuth';
@@ -50,18 +51,16 @@ const RoomsPage: FunctionComponent<Props> = (props) => {
     const authStore = useAuthContext() as Auth;
     
     if (props.isLogin) startInterceptor(user!.user.accessToken);
+    
 
     useEffect(() => {
-        if (!chatStore.isSsrGidrated) {
-            chatStore.setRooms = trueDialogs;
-            chatStore.connect(authStore.id as string);
-            chatStore.isSsrGidrated = true;
-            
-        }
+        chatStore.setRooms = trueDialogs;
+        chatStore.connect(authStore.id as string);
         if (props.isLogin) {
             authStore.id = user!.user.id;
             AuthService.refresh();
         }
+        
     }, []);
 
     useEffect(() => {
@@ -74,7 +73,6 @@ const RoomsPage: FunctionComponent<Props> = (props) => {
                 <title>rooms</title>
             </Head>
             {props.isLogin && <Rooms />}
-
         </Main>
     );
 };

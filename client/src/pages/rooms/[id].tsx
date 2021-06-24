@@ -22,6 +22,7 @@ import { Chat } from '../../store/chat';
 import { message, room } from '../../constants/types';
 import useAuthContext from '../../hooks/useAuthContext';
 import { Auth } from '../../store/auth';
+import { runInAction } from 'mobx';
 
 type Props = {
     messages: message[];
@@ -50,24 +51,28 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
     useEffect(() => {
         if (props.isLogin) {
             AuthService.refresh();
-            chatStore.messages = messages;
-            chatStore.connect(props.user!.user.id);
-            chatStore.join(
-                props.room!.roomId,
-                props.room!.interlocutorName,
-                props.room!.interlocutorId,
-                props.user!.user.id,
-            );
-            authStore.id = props.user!.user.id;
+            runInAction(() => {
+                chatStore.messages = messages;
+                chatStore.connect(props.user!.user.id);
+                chatStore.join(
+                    props.room!.roomId,
+                    props.room!.interlocutorName,
+                    props.room!.interlocutorId,
+                    props.user!.user.id,
+                );
+                chatStore.isFetchedMessage = true;
+                authStore.id = props.user!.user.id;
+            })
         }
         return () => {
             chatStore.leave();
+            chatStore.isFetchedMessage = false;
         };
     }, []);
 
     useEffect(() => {
         chatStore.audio = new Audio('/sounds/notify.mp3');
-    }, [])
+    }, []);
 
     return (
         <>

@@ -1,6 +1,7 @@
 import { FunctionComponent, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/router';
+import styled from 'styled-components';
 
 import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
@@ -8,16 +9,19 @@ import Title from '../styledComponents/Title';
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
+import { relative } from 'path';
 
 
-
+const CardText = styled.span`
+    position: relative;
+    z-index: 10;
+`
 
 
 const Rooms: FunctionComponent = () => {
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
     const router = useRouter();
-
     const handleUserClick =
         (roomId: string, interlocutorName: string, interlocutorId: string) =>
         (): void => {
@@ -45,7 +49,7 @@ const Rooms: FunctionComponent = () => {
                                     interlocutorId,
                                 )}
                             >
-                                {interlocutorName}
+                                <CardText>{interlocutorName}</CardText>
                             </Card>
                         );
                     },
@@ -56,14 +60,3 @@ const Rooms: FunctionComponent = () => {
 };
 
 export default observer(Rooms);
-
-
-// [
-//     {
-//         members: string[];
-//         messages: {
-//             [key: string]: any;
-//         }[];
-//         _id: string,
-//     },
-// ]

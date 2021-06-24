@@ -41,9 +41,9 @@ const Login: FunctionComponent = () => {
         <SignupContainer>
             <Text>Login</Text>
             <AuthForm onSubmit={handleLogin}>
-                <AuthInput type="email" value={email} placeholder="введите логин" onChange={(e) =>setName(e.target.value)}/>
-                <AuthInput type="password" value={password} placeholder="введите пароль" onChange={(e) => setPassword(e.target.value)}/>
-                <Button type="submit">Войти</Button>
+                <AuthInput type="email" value={email} placeholder="Enter login" onChange={(e) =>setName(e.target.value)}/>
+                <AuthInput type="password" value={password} placeholder="Enter password" onChange={(e) => setPassword(e.target.value)}/>
+                <Button type="submit">Login</Button>
             </AuthForm>
         </SignupContainer>  
     )

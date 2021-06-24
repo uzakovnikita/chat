@@ -9,16 +9,16 @@ const Button = styled.button<ButtonProps>`
     border: none;
     background-color: ${props => props.theme.colors['primary-bg']};
     color: ${props => props.theme.colors['blue-32-a8']};
+    font-size: 16px;
     min-width: 70px;
     display: inline-block;
-    height: 40px;
+    height: 30px;
     border-radius: 3px;
     text-align: center;
     cursor: pointer;
     transition: 0.2s;
     outline: none;
     align-self: ${props => props.align || ''};
-    margin: ${props => props.isNotCentrAlign ? '' : 'margin 0 auto'};
     box-sizing: border-box;
     &:hover {
         background-color: ${props => props.theme.colors['secondary-bg']};
