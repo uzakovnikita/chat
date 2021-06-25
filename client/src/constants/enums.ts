@@ -9,3 +9,23 @@ export enum URLS {
     SocketServer = 'http://localhost:1000',
     Messages = 'http://localhost:1000/api/messages',
 };
+
+export enum DAYS {
+    Today = 'Today',
+    Yesterday = 'Yesterday'
+};
+
+export enum MONTHS {
+    JANUARY,
+    FEBRUARY,
+    MARCH,
+    APRIL,
+    MAY,
+    JUNE,
+    JULE,
+    AUGUST,
+    SEPTEMBER,
+    OCTOBER,
+    NOVEMBER,
+    DECEMBER
+};

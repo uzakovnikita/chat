@@ -7,6 +7,7 @@ export const theme = {
         'secondary-bg': '#b5d6f5',
         'black': '#131414',
         'white': '#ffffff',
+        'purple': '#8e2de2',
         'light-gray': '#cfd0d1',
         'purple-grad': 'linear-gradient(to right, #8e2de2, #4a00e0)',
         'blue-grad': 'linear-gradient(to right, #00b4db, #0083b0)',

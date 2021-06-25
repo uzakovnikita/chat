@@ -10,7 +10,7 @@ const SingleMessage = styled.div<SingleMessageProps>`
     min-width: 200px;
     max-width: 400px;
     height: auto;
-    padding: 8px 32px 8px 8px;
+    padding: 8px 35px 8px 8px;
     margin: 5px 0;
     color: ${props => props.theme.colors['white']};
     font-family: ${props => props.theme.fonts.primary};

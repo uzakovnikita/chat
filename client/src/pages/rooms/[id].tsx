@@ -80,7 +80,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 <title>Private room</title>
             </Head>
             <Main>
-                <PrivateRoom messages={chatStore.messages.length > 0 ? chatStore.messages : messages}/>
+                <PrivateRoom/>
             </Main>
         </>
     );
