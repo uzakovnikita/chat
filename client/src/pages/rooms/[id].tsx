@@ -62,6 +62,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 );
                 chatStore.isFetchedMessage = true;
                 authStore.id = props.user!.user.id;
+                authStore.accessToken = props.user!.user.accessToken;
             })
         }
         return () => {

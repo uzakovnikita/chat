@@ -1,18 +1,18 @@
-import { useRef} from 'react';
+import { useRef } from 'react';
 
 const throttle = (cb: (...args: any[]) => void, ms: number) => {
     let isThrottle = false,
         savedArgs: any[] | null,
         savedThis: any;
 
-    const wrapperFunction = (...args: any[]) => {
+    const wrapperFunction = async (...args: any[]) => {
         if (isThrottle) {
             savedArgs = args;
             savedThis = this;
             isThrottle = true;
             return;
         }
-        cb.apply(this, args);
+        await cb.apply(this, args);
         isThrottle = true;
         setTimeout(() => {
             isThrottle = false;

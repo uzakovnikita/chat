@@ -61,7 +61,7 @@ export const fetchDialogs = async (
 export const fetchMessages = async (accessToken: string, id: string): Promise<message[]> => {
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${accessToken}`);
-    const messages = await fetch(`${URLS.Messages}?roomId=${id}`, {
+    const messages = await fetch(`${URLS.Messages}?roomId=${id}&count=10`, {
         method: 'GET',
         headers: myHeaders
     }).then((result) => result.json());

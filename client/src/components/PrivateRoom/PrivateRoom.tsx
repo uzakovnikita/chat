@@ -26,7 +26,9 @@ import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
 import { message } from '../../constants/types';
-import { DAYS, MONTHS } from '../../constants/enums';
+import { DAYS } from '../../constants/enums';
+import dateToText from '../../utils/dateToText';
+import MessagesService from '../../serivces/MessagesService';
 
 type FlexContainerProps = {
     isShow: boolean;
@@ -75,6 +77,9 @@ const DateOfMessage = styled.span`
 `;
 
 const DateTooltip = styled.span<FlexContainerProps>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: ${props => props.isShow ? 1 : 0};
     position: fixed;
     background: ${(props) => props.theme.colors['purple-grad']};
@@ -89,16 +94,17 @@ const DateTooltip = styled.span<FlexContainerProps>`
     min-height: 30px;
     text-align: center;
     z-index: 100;
+    text-transform: uppercase;
 `;
 
-const SplitMessageByDate = (
+const splitMessageByDate = (
     messages: message[],
 ): { [key: string]: message[] } => {
     return messages.reduce((acc: { [key: string]: message[] }, msg) => {
         const timeInMilliseconds = parseDateFromId(msg._id);
-        const currentDate: string = lightFormat(timeInMilliseconds, 'dd-MM');
+        const currentDate: string = lightFormat(timeInMilliseconds, 'yyyy-MM-dd');
         const prevValue = acc[currentDate] ? acc[currentDate] : [];
-        const newAcc = {...acc, [currentDate]: [...prevValue, msg]};
+        const newAcc = { ...acc, [currentDate]: [...prevValue, msg] };
         return newAcc;
     }, {});
 };
@@ -108,6 +114,7 @@ const PrivateRoom: FunctionComponent = () => {
     const [isScrolledToBottom, setScrolledToBottom] = useState(false);
     const [isShowTooltip, setIsShowTooltip] = useState(false);
     const [tooltipDay, setTooltipDay] = useState<string>(DAYS.Today);
+    const counterOfMessages = useRef(0);
 
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
@@ -132,7 +139,7 @@ const PrivateRoom: FunctionComponent = () => {
         }
     }, [isScrolledToBottom]);
 
-    
+
     useEffect(() => {
         document.addEventListener('mousemove', throttledHandle);
         containerRef.current!.addEventListener('scroll', () => {
@@ -148,7 +155,7 @@ const PrivateRoom: FunctionComponent = () => {
 
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -178,7 +185,7 @@ const PrivateRoom: FunctionComponent = () => {
         timeoutIdRef.current = setTimeout(() => {
             setIsShowTooltip(false);
         }, 2000);
-        
+
     };
 
     const handleScroll = (e: React.UIEvent<HTMLElement>) => {
@@ -186,44 +193,52 @@ const PrivateRoom: FunctionComponent = () => {
             const offset = containerRef.current.getBoundingClientRect().top;
             const currentDate = elements.current.find((el) => {
                 const boundingClientRect = el.getBoundingClientRect();
-                const selfOfssetTop = Math.abs(boundingClientRect.top);
-                if (selfOfssetTop + offset < boundingClientRect.height) {
+                if (boundingClientRect.bottom - offset > 0) {
                     return true;
-                } 
+                }
             })!.dataset.date;
-            setTooltipDay(currentDate as string);
+            setTooltipDay(dateToText(currentDate as string));
         }
-    }
+        if ((e.target as HTMLDivElement).scrollTop === 0) {
+            counterOfMessages.current += 10;
+            new Promise((res, rej) => {
+                res(MessagesService.getMessagesDeprecated(auth.accessToken as string, chat.idCurrentPrivateRoom as string, counterOfMessages.current));
+            }).then(({messages}: {messages: message[]}) => {
+                messages.forEach((msg) => {
+                    chat.messages.push(msg);
+                })
+            })
+        }
+    };
 
     const throttledHandle = useThrottle(handleMouseMove, 100);
 
     const throttledHandleScroll = useThrottle(handleScroll, 300);
 
     const memoizedMessages = useMemo(() => {
-        const messagesByDate = SplitMessageByDate(chat.messages);
+        const messagesByDate = splitMessageByDate(chat.messages);
         const dates = Object.keys(messagesByDate);
         return dates.map((date) => {
             const messagesOnCurrentDate = messagesByDate[date];
-            const [day, month] = date.split('-');
-            const namedMonth = MONTHS[+month - 1];
+            const text = dateToText(date);
             return (
                 <DateContainer key={date} data-date={date}>
-                    <DateOfMessage>{day}{' '}{namedMonth}</DateOfMessage>
+                    <DateOfMessage>{text}</DateOfMessage>
                     {messagesOnCurrentDate.map(msg => {
                         const isFromSelfMsg = msg.from === auth.id;
                         const timeInMilliseconds = parseDateFromId(msg._id);
                         const time = lightFormat(timeInMilliseconds, 'HH-MM');
                         return <SingleMessage
-                                align={
-                                    isFromSelfMsg ? 'flex-end' : 'flex-start'
-                                }
-                                key={msg._id}
-                            >
-                                {msg.messageBody}
-                                <TimeOnMessage>
-                                    {time.split('-').join(':')}
-                                </TimeOnMessage>
-                            </SingleMessage>
+                            align={
+                                isFromSelfMsg ? 'flex-end' : 'flex-start'
+                            }
+                            key={msg._id}
+                        >
+                            {msg.messageBody}
+                            <TimeOnMessage>
+                                {time.split('-').join(':')}
+                            </TimeOnMessage>
+                        </SingleMessage>
                     })}
                 </DateContainer>
             )
