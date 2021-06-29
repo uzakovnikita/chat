@@ -8,7 +8,7 @@ export default class MessagesService {
     static async getMessages(roomId: string, count: number): Promise<AxiosResponse<message[]>> {
         return api.get<message[], AxiosResponse<message[]>>(`/messages?roomId=${roomId}&count=${count}`)
     }
-    static async getMessagesDeprecated (accessToken: string, id: string, count: number): Promise<message[]> {
+    static async getMessagesDeprecated (accessToken: string, id: string, count: number): Promise<{messages:message[]}> {
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Bearer ${accessToken}`);
         const messages = await fetch(`${URLS.Messages}?roomId=${id}&count=${count}`, {

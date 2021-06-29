@@ -16,6 +16,7 @@
     "@types/styled-components": "^5.1.9",
     "axios": "^0.21.1",
     "babel": "^6.23.0",
+    "cross-env": "^7.0.3",
     "date-fns": "^2.22.1",
     "mobx": "^6.3.1",
     "mobx-react": "^7.2.0",
@@ -37,7 +38,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev": "next dev"
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev"
   },
   "eslintConfig": {
     "extends": [

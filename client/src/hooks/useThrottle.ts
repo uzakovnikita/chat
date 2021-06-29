@@ -1,18 +1,18 @@
-import { useRef } from 'react';
-
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useRef, useEffect } from 'react';
 const throttle = (cb: (...args: any[]) => void, ms: number) => {
     let isThrottle = false,
         savedArgs: any[] | null,
         savedThis: any;
 
-    const wrapperFunction = async (...args: any[]) => {
+    const wrapperFunction = (...args: any[]) => {
         if (isThrottle) {
             savedArgs = args;
             savedThis = this;
             isThrottle = true;
             return;
         }
-        await cb.apply(this, args);
+        cb.apply(this, args);
         isThrottle = true;
         setTimeout(() => {
             isThrottle = false;
@@ -26,7 +26,12 @@ const throttle = (cb: (...args: any[]) => void, ms: number) => {
 };
 
 const useThrottle = (cb: (...args: any[]) => void, ms: number = 15) => {
-    return useRef(throttle(cb, ms)).current;
+    const result = useRef<(...args: any[]) => void>();
+    useEffect(() => {
+        result.current = throttle(cb, ms);
+    }, []);
+
+    return result.current;
 };
 
 export default useThrottle;
