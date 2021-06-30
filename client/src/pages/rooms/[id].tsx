@@ -52,6 +52,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
         if (props.isLogin) {
             AuthService.refresh();
             runInAction(() => {
+                chatStore.isFetchedMessage = true;
                 chatStore.messages = messages;
                 chatStore.connect(props.user!.user.id);
                 chatStore.join(
@@ -60,7 +61,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                     props.room!.interlocutorId,
                     props.user!.user.id,
                 );
-                chatStore.isFetchedMessage = true;
+                
                 authStore.id = props.user!.user.id;
                 authStore.accessToken = props.user!.user.accessToken;
             })
@@ -68,6 +69,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
         return () => {
             chatStore.leave();
             chatStore.isFetchedMessage = false;
+            chatStore.messages = [];
         };
     }, []);
 

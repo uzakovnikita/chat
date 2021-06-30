@@ -26,11 +26,7 @@ const throttle = (cb: (...args: any[]) => void, ms: number) => {
 };
 
 const useThrottle = (cb: (...args: any[]) => void, ms: number = 15) => {
-    const result = useRef<(...args: any[]) => void>();
-    useEffect(() => {
-        result.current = throttle(cb, ms);
-    }, []);
-
+    const result = useRef<(...args: any[]) => void>(throttle(cb, ms));
     return result.current;
 };
 

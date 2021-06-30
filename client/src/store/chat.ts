@@ -33,6 +33,7 @@ export class Chat {
         socketService.connect(id);
     }
 
+
     async join(
         id: string,
         interlocutorName: string,

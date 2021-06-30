@@ -34,6 +34,7 @@ import {
 import dateToText from '../../utils/dateToText';
 import MessagesService from '../../serivces/MessagesService';
 import detectTypeOfEvent from '../../utils/detectTypeOfEvent';
+import { runInAction } from 'mobx';
 
 type FlexContainerProps = {
     isShow: boolean;
@@ -107,6 +108,32 @@ const DateTooltip = styled.span<FlexContainerProps>`
     text-transform: uppercase;
 `;
 
+const NewMessagesCounter = styled.button<FlexContainerProps>`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 100;
+    bottom: 160px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    opacity: ${props => props.isShow ? 0.7 : 0};
+    background-image: url('/images/svg/down.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: ${props => props.theme.colors['light-gray']};
+    border: none;
+    border-radius: 25px;
+    outline: none;
+    transition: 0.3s;
+    &:after {
+        position: absolute;
+        content: '';
+    }
+`
+
 const splitMessageByDate = (
     messages: message[],
 ): { [key: string]: message[] } => {
@@ -124,18 +151,20 @@ const splitMessageByDate = (
 
 const PrivateRoom: FunctionComponent = () => {
     const [messageText, setMessageText] = useState('');
-    const [isScrolledToBottom, setScrolledToBottom] = useState(false);
     const [isShowContent, setIsShowContent] = useState(false);
     const [isShowTooltip, setIsShowTooltip] = useState(false);
     const [tooltipDay, setTooltipDay] = useState<string>(DAYS.Today);
     const [scrollTop, setScrollTop] = useState(0);
+    const [counterOfNewMessages, setCountetOfNewMessages] = useState(0);
+    const [isShowCounter, setIsShowCounter] = useState(false);
 
     const stateMachine = useRef(STATES_OF_FSM_IN_PRIVATE_ROOM.UNINITIALIZED);
-    const selfGeneratingEvent = useRef<keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM | null>(null);
-    const endMessages = useRef(false);
+    const selfGeneratingEvent = useRef<
+        keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM | null
+    >(null);
     const counterOfMessages = useRef(0);
     const prevNumberOfMessages = useRef(0);
-    
+    const isSmoothScroll = useRef(false);
 
     const chat = useContext(ContextChat) as Chat;
     const auth = useContext(ContextAuth) as Auth;
@@ -164,28 +193,28 @@ const PrivateRoom: FunctionComponent = () => {
         };
     }, []);
 
+    // FSM HOOK
     useEffect(() => {
-        const event = selfGeneratingEvent.current || detectTypeOfEvent(
-            chat.isFetchedMessage,
-            chat.messages.length,
-            prevNumberOfMessages.current,
-            containerRef.current as HTMLDivElement,
-        );
+        const event =
+            selfGeneratingEvent.current ||
+            detectTypeOfEvent(
+                chat.isFetchedMessage,
+                chat.messages.length,
+                prevNumberOfMessages.current,
+                containerRef.current as HTMLDivElement,
+            );
+        selfGeneratingEvent.current = null;
         prevNumberOfMessages.current = chat.messages.length;
         switch (event) {
-            
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
-                selfGeneratingEvent.current = null;
-
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.UNINITIALIZED: {
-                        containerRef.current!.scrollTo(
-                            0,
-                            containerRef.current!.scrollHeight,
-                        );
                         stateMachine.current =
                             STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED;
+                        containerRef.current!.scrollTop =
+                            containerRef.current!.scrollHeight;
                         setIsShowContent(true);
+                        isSmoothScroll.current = true;
                         break;
                     }
                     default:
@@ -194,6 +223,10 @@ const PrivateRoom: FunctionComponent = () => {
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM: {
+                
+                setIsShowCounter(false);
+                setCountetOfNewMessages(0);
+                isSmoothScroll.current = true;
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
                         stateMachine.current =
@@ -205,6 +238,15 @@ const PrivateRoom: FunctionComponent = () => {
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM;
                         break;
                     }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM;
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -212,56 +254,45 @@ const PrivateRoom: FunctionComponent = () => {
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_TOP: {
                 switch (stateMachine.current) {
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM: {
-                        stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
-                        counterOfMessages.current += 10;
-                        MessagesService.getMessagesDeprecated(
-                            auth.accessToken as string,
-                            chat.idCurrentPrivateRoom as string,
-                            counterOfMessages.current,
-                        ).then(({ messages }: { messages: message[] }) => {
-                            messages.forEach((msg) => {
-                                chat.messages.unshift(msg);
-                            });
-                            selfGeneratingEvent.current = EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHING;
-                        });
-                        break;
-                    }
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
-                        stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
-                        counterOfMessages.current += 10;
-                        MessagesService.getMessagesDeprecated(
-                            auth.accessToken as string,
-                            chat.idCurrentPrivateRoom as string,
-                            counterOfMessages.current,
-                        ).then(({ messages }: { messages: message[] }) => {
-                            messages.forEach((msg) => {
-                                chat.messages.unshift(msg);
-                            });
-                        });
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES: {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
                         stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES;
+                        isSmoothScroll.current = false;
                         counterOfMessages.current += 20;
                         MessagesService.getMessagesDeprecated(
                             auth.accessToken as string,
                             chat.idCurrentPrivateRoom as string,
                             counterOfMessages.current,
-                        ).then(({ messages }: { messages: message[] }) => {
-                            messages.reverse().forEach((msg) => {
-                                chat.messages.unshift(msg);
-                            });
-                        });
+                        )
+                            .then(({ messages }: { messages: message[] }) => {
+                                if (messages.length === 0) {
+                                    stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
+                                    return;
+                                }
+                                const oldHeight = containerRef.current!.scrollHeight;
+                                runInAction(() => {
+                                    messages.reverse().forEach((msg) => {
+                                        chat.messages.unshift(msg);
+                                    });
+                                });
+                                const newHeight = containerRef.current!.scrollHeight;
+                                containerRef.current!.scrollTop = newHeight - oldHeight;
+                                selfGeneratingEvent.current =
+                                    EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED;
+                            })
+                            
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP;
                         break;
                     }
                     default:
                         break;
                 }
-
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_INTERMEDIATE: {
@@ -276,16 +307,34 @@ const PrivateRoom: FunctionComponent = () => {
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
                         break;
                     }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
+                        break;
+                    }
+                    default:
+                        break;
                 }
-
                 break;
             }
-            case EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHING: {
+            case EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED: {
+                isSmoothScroll.current = true;
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
-                        selfGeneratingEvent.current = null;
                         stateMachine.current =
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
                         break;
                     }
                     default:
@@ -295,6 +344,8 @@ const PrivateRoom: FunctionComponent = () => {
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGE_RECIEVED: {
+                isSmoothScroll.current = true;
+                counterOfMessages.current+=1;
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
                         stateMachine.current =
@@ -306,16 +357,46 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
+                        setCountetOfNewMessages(prev => prev+1);
+                        setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
+                        setCountetOfNewMessages(prev => prev+1);
+                        setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM: {
+                        setCountetOfNewMessages(0);
+                        setIsShowCounter(false);
                         containerRef.current!.scrollTo(
                             0,
                             containerRef.current!.scrollHeight,
                         );
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
+                        setCountetOfNewMessages(prev => prev+1);
+                        setIsShowCounter(true);
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
+                        setCountetOfNewMessages(0);
+                        setIsShowCounter(false);
+                        containerRef.current!.scrollTo(
+                            0,
+                            containerRef.current!.scrollHeight,
+                        );
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
+                        setCountetOfNewMessages(prev => prev+1);
+                        setIsShowCounter(true);
+                        break;
+                    }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
+                        setCountetOfNewMessages(prev => prev+1);
+                        setIsShowCounter(true);
                         break;
                     }
                     default:
@@ -336,7 +417,7 @@ const PrivateRoom: FunctionComponent = () => {
     const elements = useRef<HTMLDivElement[]>();
 
     useEffect(() => {
-        if (isScrolledToBottom) {
+        if (isShowContent) {
             const allElementsWithDataAtr = Array.from(
                 document.querySelectorAll('[data-date]'),
             ) as HTMLDivElement[];
@@ -356,7 +437,7 @@ const PrivateRoom: FunctionComponent = () => {
                 setTooltipDay(dateToText(currentDate as string));
             }
         }
-    }, [isScrolledToBottom]);
+    }, [chat.messages.length]);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
@@ -391,9 +472,15 @@ const PrivateRoom: FunctionComponent = () => {
         }, 2000);
     };
 
+    const handleClickScrollDown = () => {
+        
+        containerRef.current!.scrollTop = containerRef.current!.scrollHeight;
+        setIsShowCounter(false);
+    }
+
     const handleScroll = (e: React.UIEvent<HTMLElement>) => {
         setScrollTop(e.target!.scrollTop);
-        // для изменения тултипа даты
+        // для изменения даты в фиксированном тултипе
         if (elements.current && containerRef.current) {
             const offset = containerRef.current.getBoundingClientRect().top;
             const currentDate = elements.current.find((el) => {
@@ -407,8 +494,8 @@ const PrivateRoom: FunctionComponent = () => {
         }
     };
 
-    const throttledHandle = useThrottle(handleMouseMove, 100) || (() => {});
-    const throttledHandleScroll = useThrottle(handleScroll, 300) || (() => {});
+    const throttledHandle = useThrottle(handleMouseMove, 100);
+    const throttledHandleScroll = useThrottle(handleScroll, 300);
 
     const memoizedMessages = useMemo(() => {
         const messagesByDate = splitMessageByDate(chat.messages);
@@ -447,7 +534,7 @@ const PrivateRoom: FunctionComponent = () => {
             <Title>{chat.interlocutorName}</Title>
             <MessagesContainer
                 ref={containerRef}
-                className={isShowContent ? 'smooth' : ''}
+                className={isSmoothScroll.current ? 'smooth' : ''}
                 onScroll={throttledHandleScroll}
             >
                 <DateTooltip isShow={isShowTooltip}>{tooltipDay}</DateTooltip>
@@ -467,6 +554,7 @@ const PrivateRoom: FunctionComponent = () => {
                     img-hover={'/images/svg/send-hover.svg'}
                 />
             </SendBox>
+            <NewMessagesCounter isShow={isShowCounter} onClick={handleClickScrollDown}>{counterOfNewMessages}</NewMessagesCounter>
         </FlexContainer>
     );
 };
