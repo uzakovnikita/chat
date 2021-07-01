@@ -41,6 +41,7 @@ type FlexContainerProps = {
 };
 
 const FlexContainer = styled.div<FlexContainerProps>`
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -108,29 +109,45 @@ const DateTooltip = styled.span<FlexContainerProps>`
     text-transform: uppercase;
 `;
 
+const NewMessagesCounterWrapper = styled.div`
+    position: absolute;
+    bottom: 160px;
+    right: 20px;
+`
+
 const NewMessagesCounter = styled.button<FlexContainerProps>`
     display: flex;
     justify-content: center;
     align-items: center;
-    position: absolute;
-    z-index: 100;
-    bottom: 160px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    opacity: ${props => props.isShow ? 0.7 : 0};
-    background-image: url('/images/svg/down.svg');
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-color: ${props => props.theme.colors['light-gray']};
-    border: none;
-    border-radius: 25px;
+    padding: 2px 10px;
+    font-size: 20px;
     outline: none;
+    border: none;
     transition: 0.3s;
-    &:after {
-        position: absolute;
-        content: '';
+    cursor: ${props => props.isShow ? 'pointer': 'inherit'};
+    font-family: ${props => props.theme.fonts.primary};
+    opacity: ${props => props.isShow ? 1 : 0};
+    background-color: ${props => props.theme.colors['purple']};
+    color: ${props => props.theme.colors.white};
+    border-radius: 25px;
+    z-index: ${props => props.isShow ? 10 : -100};
+`
+const DownArrow = styled.div<FlexContainerProps>`
+    position: absolute;
+    top: 18px;
+    z-index: -10;
+    background-image: url('/images/svg/down.svg');
+    background-size: cover;
+    background-position: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    opacity: ${props => props.isShow ? 0.5 : 0};
+    z-index: ${props => props.isShow ? 10 : -100};
+    transition: 0.3s;
+    cursor: ${props => props.isShow ? 'pointer': 'inherit'};
+    &:hover {
+        opacity: ${props => props.isShow ? 0.9 : 0};
     }
 `
 
@@ -150,6 +167,9 @@ const splitMessageByDate = (
 };
 
 const PrivateRoom: FunctionComponent = () => {
+    const chat = useContext(ContextChat) as Chat;
+    const auth = useContext(ContextAuth) as Auth;
+
     const [messageText, setMessageText] = useState('');
     const [isShowContent, setIsShowContent] = useState(false);
     const [isShowTooltip, setIsShowTooltip] = useState(false);
@@ -157,41 +177,18 @@ const PrivateRoom: FunctionComponent = () => {
     const [scrollTop, setScrollTop] = useState(0);
     const [counterOfNewMessages, setCountetOfNewMessages] = useState(0);
     const [isShowCounter, setIsShowCounter] = useState(false);
+    const [isShowArrDown, setIsShowArrDown] = useState(false);
 
     const stateMachine = useRef(STATES_OF_FSM_IN_PRIVATE_ROOM.UNINITIALIZED);
     const selfGeneratingEvent = useRef<
         keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM | null
     >(null);
     const counterOfMessages = useRef(0);
-    const prevNumberOfMessages = useRef(0);
+    const prevNumberOfMessages = useRef(chat.messages.length);
     const isSmoothScroll = useRef(false);
-
-    const chat = useContext(ContextChat) as Chat;
-    const auth = useContext(ContextAuth) as Auth;
-
-    useEffect(() => {
-        document.addEventListener('mousemove', throttledHandle);
-        containerRef.current!.addEventListener('scroll', () => {
-            throttledHandle();
-        });
-        if (elements.current && containerRef.current) {
-            const offset = containerRef.current.getBoundingClientRect().top;
-            const currentDate = elements.current.find((el) => {
-                const boundingClientRect = el.getBoundingClientRect();
-                if (boundingClientRect.bottom - offset > 0) {
-                    return true;
-                }
-                return false;
-            })!.dataset.date;
-            setTooltipDay(dateToText(currentDate as string));
-        }
-        return () => {
-            document.removeEventListener('mousemove', throttledHandle);
-            if (timeoutIdRef.current) {
-                clearTimeout(timeoutIdRef.current);
-            }
-        };
-    }, []);
+    const elements = useRef<HTMLDivElement[]>();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
     // FSM HOOK
     useEffect(() => {
@@ -223,7 +220,7 @@ const PrivateRoom: FunctionComponent = () => {
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM: {
-                
+                setIsShowArrDown(false);
                 setIsShowCounter(false);
                 setCountetOfNewMessages(0);
                 isSmoothScroll.current = true;
@@ -247,12 +244,17 @@ const PrivateRoom: FunctionComponent = () => {
                         stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
                         break;
                     }
+                    case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
+                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
+                        break;
+                    }
                     default:
                         break;
                 }
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_TOP: {
+                setIsShowArrDown(true);
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES: {
                         break;
@@ -296,6 +298,7 @@ const PrivateRoom: FunctionComponent = () => {
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_INTERMEDIATE: {
+                setIsShowArrDown(true);
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM: {
                         stateMachine.current =
@@ -357,11 +360,21 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(prev => prev+1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(prev => prev+1);
                         setIsShowCounter(true);
                         break;
@@ -369,32 +382,56 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM: {
                         setCountetOfNewMessages(0);
                         setIsShowCounter(false);
+                        setIsShowArrDown(false);
                         containerRef.current!.scrollTo(
                             0,
                             containerRef.current!.scrollHeight,
                         );
+                        selfGeneratingEvent.current = EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(prev => prev+1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(0);
                         setIsShowCounter(false);
+                        setIsShowArrDown(false);
                         containerRef.current!.scrollTo(
                             0,
                             containerRef.current!.scrollHeight,
                         );
+                        selfGeneratingEvent.current = EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(prev => prev+1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
+                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === auth.id;
+                        if (isFromSelfMsg) {
+                            return;
+                        }
                         setCountetOfNewMessages(prev => prev+1);
                         setIsShowCounter(true);
                         break;
@@ -413,8 +450,6 @@ const PrivateRoom: FunctionComponent = () => {
     useEffect(() => {
         chat.listenMessages();
     }, [chat]);
-
-    const elements = useRef<HTMLDivElement[]>();
 
     useEffect(() => {
         if (isShowContent) {
@@ -437,10 +472,31 @@ const PrivateRoom: FunctionComponent = () => {
                 setTooltipDay(dateToText(currentDate as string));
             }
         }
-    }, [chat.messages.length]);
+    }, [isShowContent, chat.messages.length]);
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    useEffect(() => {
+        document.addEventListener('mousemove', throttledHandle);
+        containerRef.current!.addEventListener('scroll', () => {
+            throttledHandle();
+        });
+        if (elements.current && containerRef.current) {
+            const offset = containerRef.current.getBoundingClientRect().top;
+            const currentDate = elements.current.find((el) => {
+                const boundingClientRect = el.getBoundingClientRect();
+                if (boundingClientRect.bottom - offset > 0) {
+                    return true;
+                }
+                return false;
+            })!.dataset.date;
+            setTooltipDay(dateToText(currentDate as string));
+        }
+        return () => {
+            document.removeEventListener('mousemove', throttledHandle);
+            if (timeoutIdRef.current) {
+                clearTimeout(timeoutIdRef.current);
+            }
+        };
+    }, [elements.current]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -473,7 +529,6 @@ const PrivateRoom: FunctionComponent = () => {
     };
 
     const handleClickScrollDown = () => {
-        
         containerRef.current!.scrollTop = containerRef.current!.scrollHeight;
         setIsShowCounter(false);
     }
@@ -554,7 +609,10 @@ const PrivateRoom: FunctionComponent = () => {
                     img-hover={'/images/svg/send-hover.svg'}
                 />
             </SendBox>
-            <NewMessagesCounter isShow={isShowCounter} onClick={handleClickScrollDown}>{counterOfNewMessages}</NewMessagesCounter>
+            <NewMessagesCounterWrapper>
+                <DownArrow isShow={isShowArrDown} onClick={handleClickScrollDown}/>
+                <NewMessagesCounter isShow={isShowCounter} onClick={handleClickScrollDown}>{counterOfNewMessages}</NewMessagesCounter>
+            </NewMessagesCounterWrapper>
         </FlexContainer>
     );
 };

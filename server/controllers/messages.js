@@ -9,3 +9,13 @@ module.exports.messages = async function (req, res, next) {
         next(err);
     }
 };
+
+module.exports.lastmessagesinrooms = async function (req, res, next) {
+    const { selfId } = req.query;
+    try {
+        const messages = await messageService.getLastMessagesInRooms(selfId);
+        res.json({messages});
+    } catch (err) {
+        next(err);
+    }
+}

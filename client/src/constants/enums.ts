@@ -8,6 +8,7 @@ export enum URLS {
     Rooms = 'http://localhost:1000/api/rooms',
     SocketServer = 'http://localhost:1000',
     Messages = 'http://localhost:1000/api/messages',
+    LastMessagesInRooms = 'http://localhost:1000/api/lastmessagesinrooms',
 };
 
 export enum DAYS {

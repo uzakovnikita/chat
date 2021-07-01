@@ -67,3 +67,13 @@ export const fetchMessages = async (accessToken: string, id: string): Promise<me
     }).then((result) => result.json());
     return messages;
 }
+
+export const fetchLastMessagesInRooms = async (accessToken: string, id: string): Promise<message[]> => {
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', `Bearer ${accessToken}`);
+    const messages = await fetch(`${URLS.LastMessagesInRooms}?selfId=${id}`, {
+        method: 'GET',
+        headers: myHeaders
+    }).then((result) => result.json());
+    return messages;
+}

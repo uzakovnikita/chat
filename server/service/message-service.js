@@ -9,6 +9,15 @@ class MessageService {
             throw new Error(err);
         }
     }
+
+    async getLastMessagesInRooms(selfId) {
+        try {
+            const messages = await Message.find({$or: [{from: selfId}, {to: selfId}]}).sort({_id: -1}).limit(1);
+            return messages;
+        } catch (err) {
+            throw new Error(err);
+        }
+    }
 }
 
 module.exports = new MessageService();

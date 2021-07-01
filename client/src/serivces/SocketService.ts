@@ -31,6 +31,11 @@ class SocketService {
             });
         }
     }
+    listenAllRooms(pushMessage: any) {
+        this.socket.on('private message', (message: message) => {
+            pushMessage(message);
+        });
+    }
 }
 
 export default new SocketService();

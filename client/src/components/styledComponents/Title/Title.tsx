@@ -7,10 +7,10 @@ const Title = styled.h2`
     background-repeat: no-repeat;
     height: 90px;
     display: inline;
-    width: auto;
+    width: 100%;
     padding: 20px;
     margin: 0;
-    border-radius: 20px;
+    border-radius: ${props => props.theme.radiuses.big};
     line-height: 50px;
     box-sizing: border-box;
     margin-bottom: 20px;

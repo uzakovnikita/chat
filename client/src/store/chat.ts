@@ -23,6 +23,11 @@ export class Chat {
     isFetchedMessage = false;
 
     messages: message[] = [];
+
+    lastMessagesInEachRooms: {
+        [roomId: string]: message
+    } = observable({})
+
     audio: any = null;
 
     registrError(error: string) {
@@ -32,7 +37,6 @@ export class Chat {
     connect(id: string) {
         socketService.connect(id);
     }
-
 
     async join(
         id: string,
@@ -63,6 +67,19 @@ export class Chat {
         socketService.listenMessages(this.pushMessage.bind(this))
     }
     
+    listenAllRooms(selfIf: string, roomsId: string[]) {
+        roomsId.forEach(roomId => {
+            socketService.join<string>(roomId, selfIf);
+        })
+        socketService.listenAllRooms(this.pushLastMessageInEachRooms.bind(this));
+    }
+
+    pushLastMessageInEachRooms(message: message) {
+        const {room} = message;
+        this.lastMessagesInEachRooms[room] = message;
+        this.audio.play();
+    }
+
     pushMessage(message: message) {
         if (message.from === this.interlocutorId) {
             this.audio.play();

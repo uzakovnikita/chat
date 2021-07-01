@@ -6,21 +6,22 @@ import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
 
 
-import { Chat } from '../../store/chat';
+import chat, { Chat } from '../../store/chat';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
 import useAuthContext from '../../hooks/useAuthContext';
 
-import { isLogin, fetchDialogs } from '../../serivces/ssrPrefetchingService';
+import { isLogin, fetchDialogs, fetchLastMessagesInRooms } from '../../serivces/ssrPrefetchingService';
 import AuthService from '../../serivces/AuthService';
 import { startInterceptor } from '../../http/index';
 
 import Rooms from '../../components/Rooms';
 import Main from '../../components/styledComponents/Main';
 
-import { room } from '../../constants/types';
+import { message, room } from '../../constants/types';
 import { Auth } from '../../store/auth';
+import { runInAction } from 'mobx';
 
 type Props = {
     dialogs: {
@@ -32,6 +33,7 @@ type Props = {
         }[]
     },
     isLogin: boolean,
+    lastMessagesInRooms: {messages: message[]},
     user: null | {
         message: string,
         user: {
@@ -45,6 +47,7 @@ type Props = {
 
 const RoomsPage: FunctionComponent<Props> = (props) => {
     useAuth(!props.isLogin, '/auth');
+
     const { dialogs, user } = props;
     const trueDialogs: room[] = dialogs.dialogs;
     const chatStore = useChatContext() as Chat;
@@ -59,14 +62,20 @@ const RoomsPage: FunctionComponent<Props> = (props) => {
         if (props.isLogin) {
             authStore.id = user!.user.id;
             AuthService.refresh();
+            runInAction(() => {
+                props.lastMessagesInRooms.messages.forEach((message) => {
+                    const { room } = message;
+                    chatStore.lastMessagesInEachRooms[room] = message;
+                })
+            })
+            chat.listenAllRooms(user!.user.id, props.dialogs.dialogs.map(dialog => dialog.roomId));
         }
-        
+
     }, []);
 
     useEffect(() => {
         chatStore.audio = new Audio('/sounds/notify.mp3');
     }, [])
-
     return (
         <Main>  
             <Head>
@@ -83,11 +92,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const { status, user } = await isLogin(context);
     if (status) {
         const dialogs = await fetchDialogs(user.user.accessToken);
+        const lastMessagesInRooms = await fetchLastMessagesInRooms(user.user.accessToken, user.user.id);
         return {
             props: {
                 isLogin: status,
                 user,
-                dialogs
+                dialogs,
+                lastMessagesInRooms
             }
         }
     }

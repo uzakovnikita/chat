@@ -15,7 +15,8 @@ const Card = styled.div`
     font-weight: 600;
     color: ${props =>props.theme.colors['white']};
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     padding: 10px;
     box-sizing: border-box;
 
