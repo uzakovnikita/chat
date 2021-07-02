@@ -23,6 +23,7 @@ import { message, room } from '../../constants/types';
 import useAuthContext from '../../hooks/useAuthContext';
 import { Auth } from '../../store/auth';
 import { runInAction } from 'mobx';
+import NotificationContainer from '../../components/NotificationContainer';
 
 type Props = {
     messages: message[];
@@ -37,6 +38,11 @@ type Props = {
         };
     };
     room: room | null;
+    dialogs: {
+        roomId: string;
+        interlocutorName: string;
+        interlocutorId: string;
+    }[];
 };
 
 const PrivateRoomPage: FunctionComponent<Props> = (props) => {
@@ -55,23 +61,26 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 chatStore.isFetchedMessage = true;
                 chatStore.messages = messages;
                 chatStore.connect(props.user!.user.id);
+                chatStore.setRooms = props.dialogs;
+                chatStore.listenAllRooms(props.user!.user.id);
                 chatStore.join(
                     props.room!.roomId,
                     props.room!.interlocutorName,
                     props.room!.interlocutorId,
-                    props.user!.user.id,
                 );
-                
                 authStore.id = props.user!.user.id;
+                authStore.email = props.user!.user.email;
                 authStore.accessToken = props.user!.user.accessToken;
-            })
+            });
         }
         return () => {
-            chatStore.leave();
-            chatStore.isFetchedMessage = false;
-            chatStore.messages = [];
+            runInAction(() => {
+                chatStore.isFetchedMessage = false;
+                chatStore.messages = [];
+                chatStore.idCurrentPrivateRoom = null;
+            })
         };
-    }, []);
+    }, [props]);
 
     useEffect(() => {
         chatStore.audio = new Audio('/sounds/notify.mp3');
@@ -83,8 +92,9 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 <title>Private room</title>
             </Head>
             <Main>
-                <PrivateRoom/>
+                <PrivateRoom />
             </Main>
+            <NotificationContainer/>
         </>
     );
 };
@@ -108,6 +118,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 user,
                 ...messages,
                 room,
+                dialogs,
             },
         };
     }

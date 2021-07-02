@@ -41,7 +41,8 @@ io.on('connection', async (socket) => {
                 }
             },
         );
-        io.to(room).emit('private message', newMsg);
+        const senderName = (await Message.findById(newMsg._id).populate('from')).from.email;
+        io.to(room).emit('private message', {message: newMsg, from: senderName});
     });
     socket.on('disconnect', async () => {
         const mathcingSockets = await io.in(socket.userID).allSockets();

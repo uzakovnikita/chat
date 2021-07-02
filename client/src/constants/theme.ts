@@ -1,7 +1,7 @@
 export const theme = {
     colors: {
         'blue-32-a8': 'rgba(0, 118, 255, 0.9)',
-        'blue-highlights': 'rgba(0, 118, 255, 0.9)',
+        'blue-highlights': 'rgba(0, 118, 255, 1)',
         'blue-3a-c2': '#3a97c2',
         'blue-medium': '#2b6bb5',
         'primary-bg': '#d9ecfa',

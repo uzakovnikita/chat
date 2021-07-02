@@ -21,12 +21,13 @@ export class Chat {
     isSsrGidrated = false;
     isJoined = false;
     isFetchedMessage = false;
+    notifications: { message: message; from: string }[] = observable([]);
 
     messages: message[] = [];
 
     lastMessagesInEachRooms: {
-        [roomId: string]: message
-    } = observable({})
+        [roomId: string]: message;
+    } = observable({});
 
     audio: any = null;
 
@@ -38,53 +39,70 @@ export class Chat {
         socketService.connect(id);
     }
 
-    async join(
-        id: string,
-        interlocutorName: string,
-        interlocutorId: string,
-        selfId: string,
-    ) {
-        if (!this.isJoined) socketService.join<string>(id, selfId);
-        runInAction(async () => {
+    join(id: string, interlocutorName: string, interlocutorId: string) {
+        runInAction(() => {
             this.isPrivateRoom = true;
             this.idCurrentPrivateRoom = id;
             this.interlocutorName = interlocutorName;
             this.interlocutorId = interlocutorId;
             this.isJoined = true;
-        })
-    }
-
-    leave() {
-        socketService.leave(this.idCurrentPrivateRoom as string)
-        this.isJoined = false;
+        });
     }
 
     send(content: string, from: string) {
-        socketService.send<string>(content.trim(), from, this.interlocutorId as string, this.idCurrentPrivateRoom as string)
+        socketService.send<string>(
+            content.trim(),
+            from,
+            this.interlocutorId as string,
+            this.idCurrentPrivateRoom as string,
+        );
     }
 
-    listenMessages() {
-        socketService.listenMessages(this.pushMessage.bind(this))
-    }
-    
-    listenAllRooms(selfIf: string, roomsId: string[]) {
-        roomsId.forEach(roomId => {
-            socketService.join<string>(roomId, selfIf);
-        })
-        socketService.listenAllRooms(this.pushLastMessageInEachRooms.bind(this));
-    }
-
-    pushLastMessageInEachRooms(message: message) {
-        const {room} = message;
-        this.lastMessagesInEachRooms[room] = message;
-        this.audio.play();
-    }
-
-    pushMessage(message: message) {
-        if (message.from === this.interlocutorId) {
-            this.audio.play();
+    listenAllRooms(selfId: string) {
+        if (this.isJoined) {
+            return;
         }
-        this.messages.push(message);
+        if (Array.from(this.rooms).length > 0) {
+            this.isJoined = true;
+        }
+        this.rooms.forEach(({ roomId }) => {
+            socketService.join<string>(roomId, selfId);
+        });
+        socketService.listenAllRooms(this.messageHandler.bind(this));
+    }
+
+    messageHandler(message: { message: message; from: string }) {
+        this.notifyHandler(message);
+        if (this.isPrivateRoom) {
+            this.messageHanlderInPrivateRoom(message);
+        } else {
+            this.messageHandlerInUsersList(message);
+        }
+    }
+
+    notifyHandler(message: { message: message; from: string }) {
+        this.audio.play();
+        if (this.idCurrentPrivateRoom === message.message.room) {
+            return;
+        }
+        this.notifications.push(message);
+        setTimeout(() => {
+            this.notifications.shift();
+        }, 4000);
+    }
+
+    messageHanlderInPrivateRoom(message: { message: message; from: string }) {
+        if (this.idCurrentPrivateRoom === message.message.room) {
+            this.messages.push(message.message);
+        }
+        this.lastMessagesInEachRooms[message.message.room] = message.message;
+    }
+
+    messageHandlerInUsersList(message: { message: message; from: string }) {
+        const {
+            message: { room },
+        } = message;
+        this.lastMessagesInEachRooms[room] = message.message;
     }
 
     set setRooms(rooms: room[]) {

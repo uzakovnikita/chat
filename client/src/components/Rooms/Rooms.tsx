@@ -7,6 +7,9 @@ import Flex from '../styledComponents/Flex';
 import Card from '../styledComponents/Card';
 import Title from '../styledComponents/Title';
 import Logout from '../Logout';
+import SelfName from '../SelfName';
+import HeaderContainer from '../styledComponents/HeaderContainer';
+
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
 import { Auth } from '../../store/auth';
@@ -20,14 +23,15 @@ const CardText = styled.span`
     margin-bottom: 10px;
 `;
 
-const HeaderContainer = styled.header`
-    display: flex;
-    justify-content: space-between;
-`;
-const LastMessageContainer = styled.div`
-   display: flex;
-   align-items: center;
-   z-index: 100;
+
+const LastMessageContainer = styled.p`
+    width: 100%;
+    heigth: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 100;
+    margin: 0;
+    height: 20px;
 `;
 
 const LastMessageAuthor = styled.span`
@@ -41,7 +45,8 @@ const LastMessageText = styled.span`
     font-size: 16px;
     color: ${props => props.theme.colors.white};
     margin-left: 10px;
-`
+`;
+
 
 const Rooms: FunctionComponent = () => {
     const chat = useContext(ContextChat) as Chat;
@@ -63,6 +68,7 @@ const Rooms: FunctionComponent = () => {
         <>
             <HeaderContainer>
                 <Title>Users List</Title>
+                <SelfName/>
                 <Logout/>
             </HeaderContainer>
             <Flex width='100%' height='100%' justify='flex-start'>
@@ -80,10 +86,10 @@ const Rooms: FunctionComponent = () => {
                                 <CardText>{interlocutorName}</CardText>
                                 <LastMessageContainer>
                                     <LastMessageAuthor>
-                                        {chat.lastMessagesInEachRooms[roomId].from === auth.id ? 'You' : interlocutorName}: 
+                                        {chat.lastMessagesInEachRooms[roomId] && chat.lastMessagesInEachRooms[roomId]?.from === auth.id ? 'You' : interlocutorName}: 
                                     </LastMessageAuthor>
                                     <LastMessageText>
-                                    {chat.lastMessagesInEachRooms[roomId].messageBody}
+                                    {chat.lastMessagesInEachRooms[roomId]?.messageBody}
                                     </LastMessageText>
                                 </LastMessageContainer>
                             </Card>

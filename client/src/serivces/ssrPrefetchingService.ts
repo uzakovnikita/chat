@@ -68,12 +68,15 @@ export const fetchMessages = async (accessToken: string, id: string): Promise<me
     return messages;
 }
 
-export const fetchLastMessagesInRooms = async (accessToken: string, id: string): Promise<message[]> => {
+export const fetchLastMessagesInRooms = async (accessToken: string, roomIds: string[]): Promise<message[]> => {
+    console.log(roomIds)
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${accessToken}`);
-    const messages = await fetch(`${URLS.LastMessagesInRooms}?selfId=${id}`, {
-        method: 'GET',
-        headers: myHeaders
+    myHeaders.append('Content-type', 'application/json');
+    const messages = await fetch(`${URLS.LastMessagesInRooms}`, {
+        method: 'POST',
+        headers: myHeaders,
+        body: JSON.stringify(roomIds) ,
     }).then((result) => result.json());
     return messages;
 }

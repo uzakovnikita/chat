@@ -9,6 +9,7 @@ const Main = styled.main`
     padding: 20px;
     height: 100%;
     box-sizing: border-box;
+    position: relative;
 `;
 
 export default Main;

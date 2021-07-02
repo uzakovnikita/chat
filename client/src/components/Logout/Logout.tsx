@@ -3,8 +3,8 @@ import AuthService from "../../serivces/AuthService";
 import { useRouter } from "next/router";
 
 const LogoutButton = styled.button`
-    width: 120px;
-    height: 90px;
+    width: 150px;
+    height: 100%;
     border-radius: ${props => props.theme.radiuses.big};
     background-image: ${props => props.theme.colors['purple-grad']};
     margin-left: 10px;

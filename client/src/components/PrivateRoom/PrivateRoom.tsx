@@ -21,6 +21,9 @@ import MessageInput from '../../components/styledComponents/MessageInput';
 import SendBox from '../../components/styledComponents/SendBox';
 import SingleMessage from '../styledComponents/SingleMessage';
 import SendButton from '../styledComponents/SendButton';
+import HeaderContainer from '../styledComponents/HeaderContainer';
+import Logout from '../Logout';
+import GoHome from '../GoHome';
 
 import { ContextChat, ContextAuth } from '../../store/contexts';
 import { Chat } from '../../store/chat';
@@ -45,7 +48,7 @@ const FlexContainer = styled.div<FlexContainerProps>`
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100%;
+    height: calc(100% - 110px);
     box-sizing: border-box;
     opacity: ${(props) => (props.isShow ? 1 : 0)};
     transition: 0.3s;
@@ -71,8 +74,10 @@ const TimeOnMessage = styled.span`
     bottom: 4px;
 `;
 
-const DateOfMessage = styled.span`
+const DateOfMessage = styled.span<FlexContainerProps>`
     display: inline-flex;
+    position: sticky;
+    top: 10px;
     align-items: center;
     justify-content: center;
     background: ${(props) => props.theme.colors['purple-grad']};
@@ -85,6 +90,8 @@ const DateOfMessage = styled.span`
     box-shadow: 0 0 12px ${(props) => props.theme.colors['purple']};
     align-self: center;
     min-height: 30px;
+    opacity: ${(props) => (props.isShow ? 1 : 0)};
+    transition: 0.3s;
 `;
 
 const DateTooltip = styled.span<FlexContainerProps>`
@@ -113,7 +120,7 @@ const NewMessagesCounterWrapper = styled.div`
     position: absolute;
     bottom: 160px;
     right: 20px;
-`
+`;
 
 const NewMessagesCounter = styled.button<FlexContainerProps>`
     display: flex;
@@ -124,14 +131,14 @@ const NewMessagesCounter = styled.button<FlexContainerProps>`
     outline: none;
     border: none;
     transition: 0.3s;
-    cursor: ${props => props.isShow ? 'pointer': 'inherit'};
-    font-family: ${props => props.theme.fonts.primary};
-    opacity: ${props => props.isShow ? 1 : 0};
-    background-color: ${props => props.theme.colors['purple']};
-    color: ${props => props.theme.colors.white};
+    cursor: ${(props) => (props.isShow ? 'pointer' : 'inherit')};
+    font-family: ${(props) => props.theme.fonts.primary};
+    opacity: ${(props) => (props.isShow ? 1 : 0)};
+    background-color: ${(props) => props.theme.colors['purple']};
+    color: ${(props) => props.theme.colors.white};
     border-radius: 25px;
-    z-index: ${props => props.isShow ? 10 : -100};
-`
+    z-index: ${(props) => (props.isShow ? 10 : -100)};
+`;
 const DownArrow = styled.div<FlexContainerProps>`
     position: absolute;
     top: 18px;
@@ -142,14 +149,14 @@ const DownArrow = styled.div<FlexContainerProps>`
     width: 30px;
     height: 30px;
     border-radius: 15px;
-    opacity: ${props => props.isShow ? 0.5 : 0};
-    z-index: ${props => props.isShow ? 10 : -100};
+    opacity: ${(props) => (props.isShow ? 0.5 : 0)};
+    z-index: ${(props) => (props.isShow ? 10 : -100)};
     transition: 0.3s;
-    cursor: ${props => props.isShow ? 'pointer': 'inherit'};
+    cursor: ${(props) => (props.isShow ? 'pointer' : 'inherit')};
     &:hover {
-        opacity: ${props => props.isShow ? 0.9 : 0};
+        opacity: ${(props) => (props.isShow ? 0.9 : 0)};
     }
-`
+`;
 
 const splitMessageByDate = (
     messages: message[],
@@ -202,6 +209,7 @@ const PrivateRoom: FunctionComponent = () => {
             );
         selfGeneratingEvent.current = null;
         prevNumberOfMessages.current = chat.messages.length;
+
         switch (event) {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
                 switch (stateMachine.current) {
@@ -211,6 +219,7 @@ const PrivateRoom: FunctionComponent = () => {
                         containerRef.current!.scrollTop =
                             containerRef.current!.scrollHeight;
                         setIsShowContent(true);
+                        setIsShowArrDown(false);
                         isSmoothScroll.current = true;
                         break;
                     }
@@ -241,11 +250,13 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM;
                         break;
                     }
                     default:
@@ -268,28 +279,32 @@ const PrivateRoom: FunctionComponent = () => {
                             auth.accessToken as string,
                             chat.idCurrentPrivateRoom as string,
                             counterOfMessages.current,
-                        )
-                            .then(({ messages }: { messages: message[] }) => {
-                                if (messages.length === 0) {
-                                    stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
-                                    return;
-                                }
-                                const oldHeight = containerRef.current!.scrollHeight;
-                                runInAction(() => {
-                                    messages.reverse().forEach((msg) => {
-                                        chat.messages.unshift(msg);
-                                    });
+                        ).then(({ messages }: { messages: message[] }) => {
+                            if (messages.length === 0) {
+                                stateMachine.current =
+                                    STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
+                                return;
+                            }
+                            const oldHeight =
+                                containerRef.current!.scrollHeight;
+                            runInAction(() => {
+                                messages.reverse().forEach((msg) => {
+                                    chat.messages.unshift(msg);
                                 });
-                                const newHeight = containerRef.current!.scrollHeight;
-                                containerRef.current!.scrollTop = newHeight - oldHeight;
-                                selfGeneratingEvent.current =
-                                    EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED;
-                            })
-                            
+                            });
+                            const newHeight =
+                                containerRef.current!.scrollHeight;
+                            containerRef.current!.scrollTop =
+                                newHeight - oldHeight;
+                            selfGeneratingEvent.current =
+                                EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED;
+                        });
+
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP;
                         break;
                     }
                     default:
@@ -316,11 +331,13 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
                         break;
                     }
                     default:
@@ -337,7 +354,8 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES: {
-                        stateMachine.current = STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
+                        stateMachine.current =
+                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
                         break;
                     }
                     default:
@@ -348,7 +366,7 @@ const PrivateRoom: FunctionComponent = () => {
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGE_RECIEVED: {
                 isSmoothScroll.current = true;
-                counterOfMessages.current+=1;
+                counterOfMessages.current += 1;
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
                         stateMachine.current =
@@ -360,22 +378,24 @@ const PrivateRoom: FunctionComponent = () => {
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(prev => prev+1);
+                        setCountetOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(prev => prev+1);
+                        setCountetOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
@@ -387,21 +407,24 @@ const PrivateRoom: FunctionComponent = () => {
                             0,
                             containerRef.current!.scrollHeight,
                         );
-                        selfGeneratingEvent.current = EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
+                        selfGeneratingEvent.current =
+                            EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(prev => prev+1);
+                        setCountetOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
@@ -413,26 +436,29 @@ const PrivateRoom: FunctionComponent = () => {
                             0,
                             containerRef.current!.scrollHeight,
                         );
-                        selfGeneratingEvent.current = EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
+                        selfGeneratingEvent.current =
+                            EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM;
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(prev => prev+1);
+                        setCountetOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
+                        const lastMessage =
+                            chat.messages[chat.messages.length - 1];
                         const isFromSelfMsg = lastMessage.from === auth.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(prev => prev+1);
+                        setCountetOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
@@ -445,11 +471,12 @@ const PrivateRoom: FunctionComponent = () => {
             default:
                 break;
         }
-    }, [chat.isFetchedMessage, chat.messages.length, scrollTop]);
-
-    useEffect(() => {
-        chat.listenMessages();
-    }, [chat]);
+    }, [
+        chat.isFetchedMessage,
+        chat.messages.length,
+        scrollTop,
+        chat.idCurrentPrivateRoom,
+    ]);
 
     useEffect(() => {
         if (isShowContent) {
@@ -472,14 +499,18 @@ const PrivateRoom: FunctionComponent = () => {
                 setTooltipDay(dateToText(currentDate as string));
             }
         }
-    }, [isShowContent, chat.messages.length]);
+    }, [isShowContent, chat.messages.length, chat.idCurrentPrivateRoom]);
 
     useEffect(() => {
         document.addEventListener('mousemove', throttledHandle);
         containerRef.current!.addEventListener('scroll', () => {
             throttledHandle();
         });
-        if (elements.current && containerRef.current) {
+        if (
+            elements.current &&
+            elements.current.length > 0 &&
+            containerRef.current
+        ) {
             const offset = containerRef.current.getBoundingClientRect().top;
             const currentDate = elements.current.find((el) => {
                 const boundingClientRect = el.getBoundingClientRect();
@@ -490,13 +521,14 @@ const PrivateRoom: FunctionComponent = () => {
             })!.dataset.date;
             setTooltipDay(dateToText(currentDate as string));
         }
+
         return () => {
             document.removeEventListener('mousemove', throttledHandle);
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
             }
         };
-    }, [elements.current]);
+    }, [elements.current, chat.idCurrentPrivateRoom]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -531,7 +563,7 @@ const PrivateRoom: FunctionComponent = () => {
     const handleClickScrollDown = () => {
         containerRef.current!.scrollTop = containerRef.current!.scrollHeight;
         setIsShowCounter(false);
-    }
+    };
 
     const handleScroll = (e: React.UIEvent<HTMLElement>) => {
         setScrollTop(e.target!.scrollTop);
@@ -560,7 +592,7 @@ const PrivateRoom: FunctionComponent = () => {
             const text = dateToText(date);
             return (
                 <DateContainer key={date} data-date={date}>
-                    <DateOfMessage>{text}</DateOfMessage>
+                    <DateOfMessage isShow={isShowTooltip}>{text}</DateOfMessage>
                     {messagesOnCurrentDate.map((msg) => {
                         const isFromSelfMsg = msg.from === auth.id;
                         const timeInMilliseconds = parseDateFromId(msg._id);
@@ -582,38 +614,54 @@ const PrivateRoom: FunctionComponent = () => {
                 </DateContainer>
             );
         });
-    }, [chat.messages.length]);
+    }, [chat.messages.length, chat.idCurrentPrivateRoom, isShowTooltip]);
 
     return (
-        <FlexContainer isShow={isShowContent}>
-            <Title>{chat.interlocutorName}</Title>
-            <MessagesContainer
-                ref={containerRef}
-                className={isSmoothScroll.current ? 'smooth' : ''}
-                onScroll={throttledHandleScroll}
-            >
-                <DateTooltip isShow={isShowTooltip}>{tooltipDay}</DateTooltip>
-                {memoizedMessages}
-            </MessagesContainer>
-            <SendBox onSubmit={handleSubmit}>
-                <MessageInput
-                    padding={'20px'}
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                ></MessageInput>
-                <SendButton
-                    value=''
-                    type='submit'
-                    img={'/images/svg/send.svg'}
-                    img-hover={'/images/svg/send-hover.svg'}
-                />
-            </SendBox>
-            <NewMessagesCounterWrapper>
-                <DownArrow isShow={isShowArrDown} onClick={handleClickScrollDown}/>
-                <NewMessagesCounter isShow={isShowCounter} onClick={handleClickScrollDown}>{counterOfNewMessages}</NewMessagesCounter>
-            </NewMessagesCounterWrapper>
-        </FlexContainer>
+        <>
+            <HeaderContainer>
+                <Title>{chat.interlocutorName}</Title>
+                <GoHome></GoHome>
+                <Logout />
+            </HeaderContainer>
+            <FlexContainer isShow={isShowContent}>
+                <MessagesContainer
+                    ref={containerRef}
+                    className={isSmoothScroll.current ? 'smooth' : ''}
+                    onScroll={throttledHandleScroll}
+                >
+                    {/* <DateTooltip isShow={isShowTooltip}>
+                        {tooltipDay}
+                    </DateTooltip> */}
+                    {memoizedMessages}
+                </MessagesContainer>
+                <SendBox onSubmit={handleSubmit}>
+                    <MessageInput
+                        padding={'20px'}
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    ></MessageInput>
+                    <SendButton
+                        value=''
+                        type='submit'
+                        img={'/images/svg/send.svg'}
+                        img-hover={'/images/svg/send-hover.svg'}
+                    />
+                </SendBox>
+                <NewMessagesCounterWrapper>
+                    <DownArrow
+                        isShow={isShowArrDown}
+                        onClick={handleClickScrollDown}
+                    />
+                    <NewMessagesCounter
+                        isShow={isShowCounter}
+                        onClick={handleClickScrollDown}
+                    >
+                        {counterOfNewMessages}
+                    </NewMessagesCounter>
+                </NewMessagesCounterWrapper>
+            </FlexContainer>
+        </>
     );
 };
 

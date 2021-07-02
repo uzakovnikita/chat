@@ -10,10 +10,16 @@ class MessageService {
         }
     }
 
-    async getLastMessagesInRooms(selfId) {
+    async getLastMessagesInRooms(rooms) {
         try {
-            const messages = await Message.find({$or: [{from: selfId}, {to: selfId}]}).sort({_id: -1}).limit(1);
-            return messages;
+            const messagesByRooms = rooms.map((room) => {
+                return Message.find({room}).sort({_id: -1});
+            })
+            const result = await Promise.all(messagesByRooms);
+            return result.reduce((acc, messages) => {
+                const newAcc = [...acc, messages[0]];
+                return newAcc;
+            }, []);
         } catch (err) {
             throw new Error(err);
         }

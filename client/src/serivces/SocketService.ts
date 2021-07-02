@@ -4,7 +4,6 @@ import { message } from '../constants/types';
 
 class SocketService {
     private socket = io(URLS.SocketServer, { autoConnect: false });
-    private isSubscribedOnPrivateMessage = false;
     connect(id: string) {
         this.socket.auth = { userId: id };
         this.socket.connect();
@@ -23,17 +22,9 @@ class SocketService {
             room,
         });
     }
-    listenMessages(pushMessage: any) {
-        if (!this.isSubscribedOnPrivateMessage) {
-            this.isSubscribedOnPrivateMessage = true;
-            this.socket.on('private message', (message: message) => {
-                pushMessage(message);
-            });
-        }
-    }
-    listenAllRooms(pushMessage: any) {
+    listenAllRooms(handleMessage: any) {
         this.socket.on('private message', (message: message) => {
-            pushMessage(message);
+            handleMessage(message);
         });
     }
 }

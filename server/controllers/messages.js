@@ -11,9 +11,9 @@ module.exports.messages = async function (req, res, next) {
 };
 
 module.exports.lastmessagesinrooms = async function (req, res, next) {
-    const { selfId } = req.query;
+    const rooms  = req.body;
     try {
-        const messages = await messageService.getLastMessagesInRooms(selfId);
+        const messages = await messageService.getLastMessagesInRooms(rooms);
         res.json({messages});
     } catch (err) {
         next(err);
