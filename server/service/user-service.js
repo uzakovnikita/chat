@@ -129,7 +129,6 @@ class UserService {
         }
         const tokenFromDb = await tokenService.findRefreshToken(refreshToken);
         const userData = await tokenService.validateRefreshToken(refreshToken);
-        
         if (!tokenFromDb || !userData) {
             throw ApiError.UnauthorizedError('Not valid refresh token');
         }

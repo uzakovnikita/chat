@@ -1,8 +1,6 @@
 import { FunctionComponent, useState } from 'react';
 import { GetServerSideProps } from 'next'
 
-import {isLogin} from '../serivces/ssrPrefetchingService';
-
 import useAuth from '../hooks/useAuth';
 
 import Login from '../components/Login';
@@ -10,6 +8,8 @@ import Signup from '../components/Signup';
 import Button from '../components/styledComponents/Button';
 import Flex from '../components/styledComponents/Flex';
 import Main from '../components/styledComponents/Main';
+import { api } from '../http';
+import AuthService from '../serivces/AuthService';
 
 
 const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
@@ -35,10 +35,19 @@ const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
 export default AuthPage;
 
 export const getServerSideProps: GetServerSideProps =  async (context) => {
-    const result = await isLogin(context);
-    return {
-        props: {
-            isLogin: result.status,
+    const instanceAxios = api();
+    try {
+        await AuthService.isLogin(instanceAxios, context);
+        return {
+            props: {
+                isLogin: true,
+            }
+        }
+    } catch (err) {
+        return {
+            props: {
+                isLogin: false
+            }
         }
     }
 }

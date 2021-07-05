@@ -50,7 +50,7 @@ module.exports.logout = async function (req, res, next) {
 
 module.exports.refresh = async function (req, res, next) {
     try {
-        const refreshToken = req.cookies.refreshToken || req.headers.authorization.split(' ')[1];
+        const refreshToken = req.cookies.refreshToken;
         const userData = await userService.refreshToken(refreshToken);
         return res.status(200).cookie('refreshToken', userData.refreshToken, {
             maxAge: 30 * 24 * 60 * 60 * 1000,

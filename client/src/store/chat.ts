@@ -10,7 +10,7 @@ export class Chat {
     }
     users: users = [];
 
-    error: string | null = null;
+    error: any | null = null;
     rooms: room[] = [];
     isPrivateRoom: boolean = false;
     idCurrentPrivateRoom: string | null = null;

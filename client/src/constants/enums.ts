@@ -4,11 +4,11 @@ export enum URLS {
     Login = 'http://localhost:1000/api/auth/login',
     Signup = 'http://localhost:1000/api/auth/register',
     Refresh = 'http://localhost:1000/api/auth/refresh',
-    IsLogin = 'http://localhost:1000/api/auth/islogin',
-    Rooms = 'http://localhost:1000/api/rooms',
+    IsLogin = '/auth/islogin',
+    Rooms = '/rooms',
     SocketServer = 'http://localhost:1000',
-    Messages = 'http://localhost:1000/api/messages',
-    LastMessagesInRooms = 'http://localhost:1000/api/lastmessagesinrooms',
+    Messages = '/messages/',
+    LastMessagesInRooms = '/lastmessagesinrooms',
 };
 
 export enum DAYS {

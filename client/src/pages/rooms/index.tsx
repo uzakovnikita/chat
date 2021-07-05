@@ -10,14 +10,10 @@ import chat, { Chat } from '../../store/chat';
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
 import useAuthContext from '../../hooks/useAuthContext';
+import useError from '../../hooks/useError';
 
-import {
-    isLogin,
-    fetchDialogs,
-    fetchLastMessagesInRooms,
-} from '../../serivces/ssrPrefetchingService';
 import AuthService from '../../serivces/AuthService';
-import { startInterceptor } from '../../http/index';
+import { startInterceptor, api } from '../../http/index';
 
 import Rooms from '../../components/Rooms';
 import NotificationContainer from '../../components/NotificationContainer';
@@ -26,54 +22,54 @@ import Main from '../../components/styledComponents/Main';
 import { message, room } from '../../constants/types';
 import { Auth } from '../../store/auth';
 import { runInAction } from 'mobx';
+import DialogService from '../../serivces/DialogsService';
+import MessagesService from '../../serivces/MessagesService';
 
 type Props = {
     dialogs: {
-        message: string;
-        dialogs: {
-            roomId: string;
-            interlocutorName: string;
-            interlocutorId: string;
-        }[];
-    };
+        roomId: string;
+        interlocutorName: string;
+        interlocutorId: string;
+    }[];
+
     isLogin: boolean;
     lastMessagesInRooms: { messages: message[] };
-    user: null | {
-        message: string;
-        user: {
-            email: string;
-            id: string;
-            isActivated: boolean;
-            accessToken: string;
-        };
-    };
+
+    user: {
+        email: string;
+        id: string;
+        isActivated: boolean;
+        accessToken: string;
+    } | null;
+
+    error?: any;
 };
 
 const RoomsPage: FunctionComponent<Props> = (props) => {
+    console.log(props);
+    useError(props.error);
     useAuth(!props.isLogin, '/auth');
 
     const { dialogs, user } = props;
-    const trueDialogs: room[] = dialogs.dialogs;
+    const trueDialogs: room[] = dialogs;
     const chatStore = useChatContext() as Chat;
     const authStore = useAuthContext() as Auth;
 
-    if (props.isLogin) startInterceptor(user!.user.accessToken);
-
     useEffect(() => {
+        const axiosInstance = api();
         chatStore.setRooms = trueDialogs;
         chatStore.connect(authStore.id as string);
         if (props.isLogin) {
-            authStore.id = user!.user.id;
-            authStore.email = user!.user.email;
-            AuthService.refresh();
+            authStore.id = user!.id;
+            authStore.email = user!.email;
+            AuthService.refresh(axiosInstance);
             runInAction(() => {
                 props.lastMessagesInRooms.messages.forEach((message) => {
                     const { room } = message;
                     chatStore.lastMessagesInEachRooms[room] = message;
-                    console.log(chatStore.lastMessagesInEachRooms[room]);
                 });
             });
-            chat.listenAllRooms(user!.user.id);
+            chat.listenAllRooms(user!.id);
         }
     }, []);
 
@@ -82,13 +78,16 @@ const RoomsPage: FunctionComponent<Props> = (props) => {
     }, []);
     return (
         <>
-            <Head>
-                <title>rooms</title>
-            </Head>
-            <Main>
-                {props.isLogin && <Rooms />}
-            </Main>
-            <NotificationContainer/>
+            {props.error && null}
+            {!props.error && (
+                <>
+                    <Head>
+                        <title>rooms</title>
+                    </Head>
+                    <Main>{props.isLogin && <Rooms />}</Main>
+                    <NotificationContainer />
+                </>
+            )}
         </>
     );
 };
@@ -96,28 +95,40 @@ const RoomsPage: FunctionComponent<Props> = (props) => {
 export default observer(RoomsPage);
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { status, user } = await isLogin(context);
-    if (status) {
-        const dialogs = await fetchDialogs(user.user.accessToken);
-        const rooms = dialogs.dialogs.map(({ roomId }) => roomId);
-        const lastMessagesInRooms = await fetchLastMessagesInRooms(
-            user.user.accessToken,
-            rooms,
-        );
+    try {
+        const axiosInstance = api();
+        const {
+            data: { user },
+        } = await AuthService.isLogin(axiosInstance, context);
+        startInterceptor(user.accessToken, axiosInstance);
+    
+        const {
+            data: { dialogs },
+        } = await DialogService.getDialogs(axiosInstance);
+    
+        const rooms = dialogs.map(({ roomId }) => roomId);
+        const lastMessagesInRooms = await MessagesService.getLastMessagesInRooms(axiosInstance, rooms);
+    
         return {
             props: {
-                isLogin: status,
                 user,
                 dialogs,
-                lastMessagesInRooms,
+                lastMessagesInRooms: lastMessagesInRooms.data,
+                error: null,
+                isLogin: true,
             },
         };
     }
-    return {
-        props: {
-            isLogin: status,
-            user,
-            dialogs: [],
-        },
-    };
+
+     catch (err) {
+        return {
+            props: {
+                isLogin: false,
+                user: null,
+                dialogs: [],
+                lastMessageInRooms: [],
+                error: JSON.stringify(err),
+            },
+        };
+    }
 };

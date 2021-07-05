@@ -69,7 +69,6 @@ export const fetchMessages = async (accessToken: string, id: string): Promise<me
 }
 
 export const fetchLastMessagesInRooms = async (accessToken: string, roomIds: string[]): Promise<message[]> => {
-    console.log(roomIds)
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${accessToken}`);
     myHeaders.append('Content-type', 'application/json');

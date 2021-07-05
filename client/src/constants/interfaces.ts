@@ -10,3 +10,8 @@ export interface IAuthResponse {
     user: IUser;
 }
 
+export interface IIsLoginResponse {
+    user: IUser & {
+        accessToken: string
+    }
+}

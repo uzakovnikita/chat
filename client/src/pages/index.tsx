@@ -1,8 +1,9 @@
 import { FunctionComponent } from 'react';
 import { GetServerSideProps } from 'next'
-import {isLogin} from '../serivces/ssrPrefetchingService';
 
 import useAuth from '../hooks/useAuth';
+import AuthService from '../serivces/AuthService';
+import { api } from '../http';
 
 const IndexPage: FunctionComponent<{isLogin: boolean}> = (props) => {
     useAuth(props.isLogin, '/rooms');
@@ -16,10 +17,20 @@ const IndexPage: FunctionComponent<{isLogin: boolean}> = (props) => {
 export default IndexPage;
 
 export const getServerSideProps: GetServerSideProps =  async (context) => {
-    const result = await isLogin(context);
-    return {
-        props: {
-            isLogin: result.status,
+    const instanceAxios = api();
+    try {
+        await AuthService.isLogin(instanceAxios, context);
+        return {
+            props: {
+                isLogin: true,
+            }
+        }
+    } catch (err) {
+        return {
+            props: {
+                isLogin: false
+            }
         }
     }
+
 }

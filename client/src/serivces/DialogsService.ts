@@ -1,9 +1,9 @@
-import {api} from '../http/index';
-import { AxiosResponse } from 'axios';
-import {room} from '../constants/types';
+import { AxiosInstance, AxiosResponse } from 'axios';
+import { room } from '../constants/types';
+import { URLS } from '../constants/enums';
 
 export default class DialogService {
-    static async getDialogs(userId: string): Promise<AxiosResponse<room[]>> {
-        return api.post<room[], AxiosResponse<room[]>>('/rooms', { userId })
+    static async getDialogs(api: AxiosInstance): Promise<AxiosResponse<{message: string, dialogs: room[]}>> {
+        return api.get<{message: string, dialogs: room[]}>(URLS.Rooms);
     }
 }

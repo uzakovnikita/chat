@@ -24,6 +24,8 @@ import useAuthContext from '../../hooks/useAuthContext';
 import { Auth } from '../../store/auth';
 import { runInAction } from 'mobx';
 import NotificationContainer from '../../components/NotificationContainer';
+import MessagesService from '../../serivces/MessagesService';
+import DialogService from '../../serivces/DialogsService';
 
 type Props = {
     messages: message[];
@@ -78,7 +80,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 chatStore.isFetchedMessage = false;
                 chatStore.messages = [];
                 chatStore.idCurrentPrivateRoom = null;
-            })
+            });
         };
     }, [props]);
 
@@ -94,7 +96,7 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
             <Main>
                 <PrivateRoom />
             </Main>
-            <NotificationContainer/>
+            <NotificationContainer />
         </>
     );
 };
@@ -102,32 +104,36 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
 export default observer(PrivateRoomPage);
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { status, user } = await isLogin(context);
-    const { id } = context.query;
-
-    if (status) {
-        const messages = await fetchMessages(
-            user.user.accessToken,
-            id as string,
-        );
-        const { dialogs } = await fetchDialogs(user.user.accessToken);
+    try {
+        const {
+            data: { user },
+        } = await AuthService.isLogin(context);
+        startInterceptor(user.accessToken);
+        const { id } = context.query;
+        const {
+            data: { messages },
+        } = await MessagesService.getMessages(id as string, 20);
+        const {
+            data: { dialogs },
+        } = await DialogService.getDialogs();
         const room = dialogs.find(({ roomId }) => roomId === id);
         return {
             props: {
-                isLogin: status,
+                isLogin: true,
                 user,
                 ...messages,
-                room,
-                dialogs,
+                room, 
+                dialogs
+            },
+        };
+    } catch (err) {
+        return {
+            props: {
+                isLogin: false,
+                user: null,
+                messages: [],
+                room: null,
             },
         };
     }
-    return {
-        props: {
-            isLogin: status,
-            user,
-            messages: [],
-            room: null,
-        },
-    };
 };

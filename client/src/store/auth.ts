@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import { api } from '../http';
 import AuthService from '../serivces/AuthService';
 
 export class Auth {
@@ -17,8 +18,9 @@ export class Auth {
     }
 
     async login(email: string, password: string) {
+        const axiosInstance = api();
         await runInAction(async () => {
-            const response = await AuthService.login(email, password);
+            const response = await AuthService.login(axiosInstance, email, password);
             this.isLogin = true;
             const { accessToken, user } = response.data;
             this.accessToken = accessToken;
