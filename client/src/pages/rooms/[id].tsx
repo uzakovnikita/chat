@@ -1,44 +1,38 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, FunctionComponent } from 'react';
-import { GetServerSideProps } from 'next';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
+import { GetServerSideProps } from 'next';
+import Head from 'next/head';
 
-import {
-    isLogin,
-    fetchMessages,
-    fetchDialogs,
-} from '../../serivces/ssrPrefetchingService';
+import { api, startInterceptor } from '../../http/index';
+
 import AuthService from '../../serivces/AuthService';
-import { startInterceptor } from '../../http/index';
+import MessagesService from '../../serivces/MessagesService';
+import DialogService from '../../serivces/DialogsService';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
+import useAuthContext from '../../hooks/useAuthContext';
 
-import Head from 'next/head';
-import PrivateRoom from '../../components/PrivateRoom';
+import NotificationContainer from '../../components/NotificationContainer';
+import PrivateRoom from '../../components/containers/PrivateRoom';
 import Main from '../../components/styledComponents/Main';
 
 import { Chat } from '../../store/chat';
-import { message, room } from '../../constants/types';
-import useAuthContext from '../../hooks/useAuthContext';
 import { Auth } from '../../store/auth';
-import { runInAction } from 'mobx';
-import NotificationContainer from '../../components/NotificationContainer';
-import MessagesService from '../../serivces/MessagesService';
-import DialogService from '../../serivces/DialogsService';
+import { message, room } from '../../constants/types';
 
 type Props = {
     messages: message[];
     isLogin: boolean;
-    user: null | {
-        message: string;
-        user: {
-            email: string;
-            id: string;
-            isActivated: boolean;
-            accessToken: string;
-        };
-    };
+    user: {
+        email: string;
+        id: string;
+        isActivated: boolean;
+        accessToken: string;
+    } | null;
+
     room: room | null;
     dialogs: {
         roomId: string;
@@ -48,31 +42,32 @@ type Props = {
 };
 
 const PrivateRoomPage: FunctionComponent<Props> = (props) => {
-    useAuth(!props.isLogin, '/auth');
-
-    const { messages, user } = props;
+    const { messages, user, dialogs, isLogin, room } = props;
+    
     const chatStore = useChatContext() as Chat;
     const authStore = useAuthContext() as Auth;
 
-    if (props.isLogin) startInterceptor(user!.user.accessToken);
+    useAuth(isLogin, '/auth');
 
     useEffect(() => {
-        if (props.isLogin) {
-            AuthService.refresh();
+        const axiosInstance = api();
+        if (isLogin) {
+            startInterceptor(user!.accessToken, axiosInstance);
+            AuthService.refresh(axiosInstance);
             runInAction(() => {
                 chatStore.isFetchedMessage = true;
                 chatStore.messages = messages;
-                chatStore.connect(props.user!.user.id);
-                chatStore.setRooms = props.dialogs;
-                chatStore.listenAllRooms(props.user!.user.id);
+                chatStore.connect(user!.id);
+                chatStore.setRooms = dialogs;
+                chatStore.listenAllRooms(user!.id);
                 chatStore.join(
-                    props.room!.roomId,
-                    props.room!.interlocutorName,
-                    props.room!.interlocutorId,
+                    room!.roomId,
+                    room!.interlocutorName,
+                    room!.interlocutorId,
                 );
-                authStore.id = props.user!.user.id;
-                authStore.email = props.user!.user.email;
-                authStore.accessToken = props.user!.user.accessToken;
+                authStore.id = user!.id;
+                authStore.email = user!.email;
+                authStore.accessToken = user!.accessToken;
             });
         }
         return () => {
@@ -105,23 +100,26 @@ export default observer(PrivateRoomPage);
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
+        const axiosInstance = api();
         const {
             data: { user },
-        } = await AuthService.isLogin(context);
-        startInterceptor(user.accessToken);
+        } = await AuthService.isLogin(axiosInstance, context);
+        startInterceptor(user.accessToken, axiosInstance);
+        const {
+            data: { dialogs },
+        } = await DialogService.getDialogs(axiosInstance);
+
         const { id } = context.query;
         const {
             data: { messages },
-        } = await MessagesService.getMessages(id as string, 20);
-        const {
-            data: { dialogs },
-        } = await DialogService.getDialogs();
+        } = await MessagesService.getMessages(axiosInstance, id as string, 0);
+
         const room = dialogs.find(({ roomId }) => roomId === id);
         return {
             props: {
                 isLogin: true,
                 user,
-                ...messages,
+                messages,
                 room, 
                 dialogs
             },

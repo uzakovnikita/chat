@@ -1,18 +1,20 @@
-import { FunctionComponent, useContext } from 'react';
+import { FunctionComponent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
-import Flex from '../styledComponents/Flex';
-import Card from '../styledComponents/Card';
-import Title from '../styledComponents/Title';
-import Logout from '../Logout';
-import SelfName from '../SelfName';
-import HeaderContainer from '../styledComponents/HeaderContainer';
+import useAuthContext from '../../../hooks/useAuthContext';
+import useChatContext from '../../../hooks/useChatContext';
 
-import { ContextChat, ContextAuth } from '../../store/contexts';
-import { Chat } from '../../store/chat';
-import { Auth } from '../../store/auth';
+import Flex from '../../styledComponents/Flex';
+import Card from '../../styledComponents/Card';
+import Title from '../../styledComponents/Title';
+import Logout from '../../Logout';
+import SelfName from '../../SelfName';
+import HeaderContainer from '../../styledComponents/HeaderContainer';
+
+import { Chat } from '../../../store/chat';
+import { Auth } from '../../../store/auth';
 
 
 const CardText = styled.span`
@@ -49,17 +51,17 @@ const LastMessageText = styled.span`
 
 
 const Rooms: FunctionComponent = () => {
-    const chat = useContext(ContextChat) as Chat;
-    const auth = useContext(ContextAuth) as Auth;
+    const chatStore = useChatContext() as Chat;
+    const authStore = useAuthContext() as Auth;
     const router = useRouter();
+
     const handleUserClick =
         (roomId: string, interlocutorName: string, interlocutorId: string) =>
         (): void => {
-            chat.join(
+            chatStore.join(
                 roomId,
                 interlocutorName,
                 interlocutorId,
-                auth.id as string,
             );
             router.push(`/rooms/${roomId}`)
         };
@@ -72,7 +74,7 @@ const Rooms: FunctionComponent = () => {
                 <Logout/>
             </HeaderContainer>
             <Flex width='100%' height='100%' justify='flex-start'>
-                {chat.rooms?.map(
+                {chatStore.rooms?.map(
                     ({ roomId, interlocutorName, interlocutorId }) => {
                         return (
                             <Card
@@ -86,10 +88,10 @@ const Rooms: FunctionComponent = () => {
                                 <CardText>{interlocutorName}</CardText>
                                 <LastMessageContainer>
                                     <LastMessageAuthor>
-                                        {chat.lastMessagesInEachRooms[roomId] && chat.lastMessagesInEachRooms[roomId]?.from === auth.id ? 'You' : interlocutorName}: 
+                                        {chatStore.lastMessagesInEachRooms[roomId] && chatStore.lastMessagesInEachRooms[roomId]?.from === authStore.id ? 'You' : interlocutorName}: 
                                     </LastMessageAuthor>
                                     <LastMessageText>
-                                    {chat.lastMessagesInEachRooms[roomId]?.messageBody}
+                                    {chatStore.lastMessagesInEachRooms[roomId]?.messageBody}
                                     </LastMessageText>
                                 </LastMessageContainer>
                             </Card>

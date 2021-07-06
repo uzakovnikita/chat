@@ -2,48 +2,49 @@
 import React, {
     FunctionComponent,
     useState,
-    useContext,
     useEffect,
     useRef,
-    useMemo,
 } from 'react';
 import { observer } from 'mobx-react-lite';
+import { runInAction } from 'mobx';
 import styled from 'styled-components';
 import { lightFormat } from 'date-fns';
 
-import parseDateFromId from '../../utils/parseDateFromId';
+import { api, startInterceptor } from '../../../http';
 
-import useThrottle from '../../hooks/useThrottle';
+import MessagesService from '../../../serivces/MessagesService';
 
-import Title from '../../components/styledComponents/Title';
-import MessagesContainer from '../styledComponents/MessagesContainer';
-import MessageInput from '../../components/styledComponents/MessageInput';
-import SendBox from '../../components/styledComponents/SendBox';
-import SingleMessage from '../styledComponents/SingleMessage';
-import SendButton from '../styledComponents/SendButton';
-import HeaderContainer from '../styledComponents/HeaderContainer';
-import Logout from '../Logout';
-import GoHome from '../GoHome';
+import dateToText from '../../../utils/dateToText';
+import detectTypeOfEvent from '../../../utils/detectTypeOfEvent';
+import parseDateFromId from '../../../utils/parseDateFromId';
 
-import { ContextChat, ContextAuth } from '../../store/contexts';
-import { Chat } from '../../store/chat';
-import { Auth } from '../../store/auth';
-import { message } from '../../constants/types';
+import useThrottle from '../../../hooks/useThrottle';
+import useAuthContext from '../../../hooks/useAuthContext';
+import useChatContext from '../../../hooks/useChatContext';
+
+import Title from '../../styledComponents/Title';
+import MessagesContainer from '../../styledComponents/MessagesContainer';
+import MessageInput from '../../styledComponents/MessageInput';
+import SendBox from '../../styledComponents/SendBox';
+import SingleMessage from '../../styledComponents/SingleMessage';
+import SendButton from '../../styledComponents/SendButton';
+import HeaderContainer from '../../styledComponents/HeaderContainer';
+import Logout from '../../Logout';
+import GoHome from '../../GoHome';
+
+import { Chat } from '../../../store/chat';
+import { Auth } from '../../../store/auth';
+import { message } from '../../../constants/types';
 import {
-    DAYS,
     EVENTS_OF_FSM_IN_PRIVATE_ROOM,
     STATES_OF_FSM_IN_PRIVATE_ROOM,
-} from '../../constants/enums';
-import dateToText from '../../utils/dateToText';
-import MessagesService from '../../serivces/MessagesService';
-import detectTypeOfEvent from '../../utils/detectTypeOfEvent';
-import { runInAction } from 'mobx';
+} from '../../../constants/enums';
 
-type FlexContainerProps = {
+type isShowProps = {
     isShow: boolean;
 };
 
-const FlexContainer = styled.div<FlexContainerProps>`
+const FlexContainer = styled.div<isShowProps>`
     position: relative;
     display: flex;
     flex-direction: column;
@@ -74,7 +75,7 @@ const TimeOnMessage = styled.span`
     bottom: 4px;
 `;
 
-const DateOfMessage = styled.span<FlexContainerProps>`
+const DateOfMessage = styled.span<isShowProps>`
     display: inline-flex;
     position: sticky;
     top: 10px;
@@ -94,35 +95,13 @@ const DateOfMessage = styled.span<FlexContainerProps>`
     transition: 0.3s;
 `;
 
-const DateTooltip = styled.span<FlexContainerProps>`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: ${(props) => (props.isShow ? 1 : 0)};
-    position: fixed;
-    top: 171px;
-    background: ${(props) => props.theme.colors['purple-grad']};
-    color: ${(props) => props.theme.colors['white']};
-    border-radius: ${(props) => props.theme.radiuses.medium};
-    font-family: ${(props) => props.theme.fonts.primary};
-    padding: 4px;
-    box-sizing: border-box;
-    box-shadow: 0 0 12px ${(props) => props.theme.colors['purple']};
-    transition: 1s;
-    min-width: 70px;
-    min-height: 30px;
-    text-align: center;
-    z-index: 100;
-    text-transform: uppercase;
-`;
-
 const NewMessagesCounterWrapper = styled.div`
     position: absolute;
     bottom: 160px;
     right: 20px;
 `;
 
-const NewMessagesCounter = styled.button<FlexContainerProps>`
+const NewMessagesCounter = styled.button<isShowProps>`
     display: flex;
     justify-content: center;
     align-items: center;
@@ -139,7 +118,7 @@ const NewMessagesCounter = styled.button<FlexContainerProps>`
     border-radius: 25px;
     z-index: ${(props) => (props.isShow ? 10 : -100)};
 `;
-const DownArrow = styled.div<FlexContainerProps>`
+const DownArrow = styled.div<isShowProps>`
     position: absolute;
     top: 18px;
     z-index: -10;
@@ -174,41 +153,46 @@ const splitMessageByDate = (
 };
 
 const PrivateRoom: FunctionComponent = () => {
-    const chat = useContext(ContextChat) as Chat;
-    const auth = useContext(ContextAuth) as Auth;
+    const chatStore = useChatContext() as Chat;
+    const authStore = useAuthContext() as Auth;
 
     const [messageText, setMessageText] = useState('');
     const [isShowContent, setIsShowContent] = useState(false);
-    const [isShowTooltip, setIsShowTooltip] = useState(false);
-    const [tooltipDay, setTooltipDay] = useState<string>(DAYS.Today);
+    const [isShowTooltipOfDate, setIsShowTooltipOfDate] = useState(false);
     const [scrollTop, setScrollTop] = useState(0);
-    const [counterOfNewMessages, setCountetOfNewMessages] = useState(0);
+    const [counterOfNewMessages, setCounterOfNewMessages] = useState(0);
     const [isShowCounter, setIsShowCounter] = useState(false);
     const [isShowArrDown, setIsShowArrDown] = useState(false);
 
+    // FSM STATE AND EVENT
     const stateMachine = useRef(STATES_OF_FSM_IN_PRIVATE_ROOM.UNINITIALIZED);
     const selfGeneratingEvent = useRef<
         keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM | null
     >(null);
+
     const counterOfMessages = useRef(0);
-    const prevNumberOfMessages = useRef(chat.messages.length);
+    const prevNumberOfMessages = useRef(chatStore.messages.length);
     const isSmoothScroll = useRef(false);
-    const elements = useRef<HTMLDivElement[]>();
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
     // FSM HOOK
+    // в зависимости от связки событие+состояние(stateMachine) мы получаем необходимые побочные эффекты и новое состояние stateMachine
+    // иногда событие не может быть определено через параметры функции detectTypeOfEvent, 
+    // тогда событие генерируется прямо в хуке и записывается в переменную selfGeneratingEvent
     useEffect(() => {
+        const axiosInstance = api();
+        startInterceptor(authStore.accessToken as string, axiosInstance);
         const event =
             selfGeneratingEvent.current ||
             detectTypeOfEvent(
-                chat.isFetchedMessage,
-                chat.messages.length,
+                chatStore.isFetchedMessage,
+                chatStore.messages.length,
                 prevNumberOfMessages.current,
                 containerRef.current as HTMLDivElement,
             );
         selfGeneratingEvent.current = null;
-        prevNumberOfMessages.current = chat.messages.length;
+        prevNumberOfMessages.current = chatStore.messages.length;
 
         switch (event) {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
@@ -231,7 +215,7 @@ const PrivateRoom: FunctionComponent = () => {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM: {
                 setIsShowArrDown(false);
                 setIsShowCounter(false);
-                setCountetOfNewMessages(0);
+                setCounterOfNewMessages(0);
                 isSmoothScroll.current = true;
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
@@ -275,11 +259,11 @@ const PrivateRoom: FunctionComponent = () => {
                             STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES;
                         isSmoothScroll.current = false;
                         counterOfMessages.current += 20;
-                        MessagesService.getMessagesDeprecated(
-                            auth.accessToken as string,
-                            chat.idCurrentPrivateRoom as string,
+                        MessagesService.getMessages(
+                            axiosInstance,
+                            chatStore.idCurrentPrivateRoom as string,
                             counterOfMessages.current,
-                        ).then(({ messages }: { messages: message[] }) => {
+                        ).then(({ data: { messages } }) => {
                             if (messages.length === 0) {
                                 stateMachine.current =
                                     STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
@@ -289,7 +273,7 @@ const PrivateRoom: FunctionComponent = () => {
                                 containerRef.current!.scrollHeight;
                             runInAction(() => {
                                 messages.reverse().forEach((msg) => {
-                                    chat.messages.unshift(msg);
+                                    chatStore.messages.unshift(msg);
                                 });
                             });
                             const newHeight =
@@ -379,28 +363,28 @@ const PrivateRoom: FunctionComponent = () => {
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages((prev) => prev + 1);
+                        setCounterOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages((prev) => prev + 1);
+                        setCounterOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM: {
-                        setCountetOfNewMessages(0);
+                        setCounterOfNewMessages(0);
                         setIsShowCounter(false);
                         setIsShowArrDown(false);
                         containerRef.current!.scrollTo(
@@ -413,23 +397,23 @@ const PrivateRoom: FunctionComponent = () => {
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages((prev) => prev + 1);
+                        setCounterOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages(0);
+                        setCounterOfNewMessages(0);
                         setIsShowCounter(false);
                         setIsShowArrDown(false);
                         containerRef.current!.scrollTo(
@@ -442,23 +426,23 @@ const PrivateRoom: FunctionComponent = () => {
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages((prev) => prev + 1);
+                        setCounterOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
                         const lastMessage =
-                            chat.messages[chat.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === auth.id;
+                            chatStore.messages[chatStore.messages.length - 1];
+                        const isFromSelfMsg = lastMessage.from === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
-                        setCountetOfNewMessages((prev) => prev + 1);
+                        setCounterOfNewMessages((prev) => prev + 1);
                         setIsShowCounter(true);
                         break;
                     }
@@ -472,70 +456,31 @@ const PrivateRoom: FunctionComponent = () => {
                 break;
         }
     }, [
-        chat.isFetchedMessage,
-        chat.messages.length,
+        chatStore.isFetchedMessage,
+        chatStore.messages.length,
         scrollTop,
-        chat.idCurrentPrivateRoom,
+        chatStore.idCurrentPrivateRoom,
     ]);
-
-    useEffect(() => {
-        if (isShowContent) {
-            const allElementsWithDataAtr = Array.from(
-                document.querySelectorAll('[data-date]'),
-            ) as HTMLDivElement[];
-            elements.current = allElementsWithDataAtr;
-            if (allElementsWithDataAtr.length < 1) {
-                return;
-            }
-            if (elements.current && containerRef.current) {
-                const offset = containerRef.current.getBoundingClientRect().top;
-                const currentDate = elements.current.find((el) => {
-                    const boundingClientRect = el.getBoundingClientRect();
-                    if (boundingClientRect.bottom - offset > 0) {
-                        return true;
-                    }
-                    return false;
-                })!.dataset.date;
-                setTooltipDay(dateToText(currentDate as string));
-            }
-        }
-    }, [isShowContent, chat.messages.length, chat.idCurrentPrivateRoom]);
 
     useEffect(() => {
         document.addEventListener('mousemove', throttledHandle);
         containerRef.current!.addEventListener('scroll', () => {
             throttledHandle();
         });
-        if (
-            elements.current &&
-            elements.current.length > 0 &&
-            containerRef.current
-        ) {
-            const offset = containerRef.current.getBoundingClientRect().top;
-            const currentDate = elements.current.find((el) => {
-                const boundingClientRect = el.getBoundingClientRect();
-                if (boundingClientRect.bottom - offset > 0) {
-                    return true;
-                }
-                return false;
-            })!.dataset.date;
-            setTooltipDay(dateToText(currentDate as string));
-        }
-
         return () => {
             document.removeEventListener('mousemove', throttledHandle);
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
             }
         };
-    }, [elements.current, chat.idCurrentPrivateRoom]);
+    }, [chatStore.idCurrentPrivateRoom]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (messageText.length < 1) {
             return;
         }
-        chat.send(messageText, auth.id as string);
+        chatStore.send(messageText, authStore.id as string);
         setMessageText('');
     };
 
@@ -545,18 +490,18 @@ const PrivateRoom: FunctionComponent = () => {
             if (messageText.trim().length < 1) {
                 return;
             }
-            chat.send(messageText, auth.id as string);
+            chatStore.send(messageText, authStore.id as string);
             setMessageText('');
         }
     };
 
     const handleMouseMove = () => {
-        setIsShowTooltip(true);
+        setIsShowTooltipOfDate(true);
         if (timeoutIdRef.current) {
             clearTimeout(timeoutIdRef.current);
         }
         timeoutIdRef.current = setTimeout(() => {
-            setIsShowTooltip(false);
+            setIsShowTooltipOfDate(false);
         }, 2000);
     };
 
@@ -566,73 +511,64 @@ const PrivateRoom: FunctionComponent = () => {
     };
 
     const handleScroll = (e: React.UIEvent<HTMLElement>) => {
-        setScrollTop(e.target!.scrollTop);
-        // для изменения даты в фиксированном тултипе
-        if (elements.current && containerRef.current) {
-            const offset = containerRef.current.getBoundingClientRect().top;
-            const currentDate = elements.current.find((el) => {
-                const boundingClientRect = el.getBoundingClientRect();
-                if (boundingClientRect.bottom - offset > 0) {
-                    return true;
-                }
-                return false;
-            })!.dataset.date;
-            setTooltipDay(dateToText(currentDate as string));
-        }
+        setScrollTop((e.target as HTMLDivElement).scrollTop);
     };
 
     const throttledHandle = useThrottle(handleMouseMove, 100);
     const throttledHandleScroll = useThrottle(handleScroll, 300);
-
-    const memoizedMessages = useMemo(() => {
-        const messagesByDate = splitMessageByDate(chat.messages);
-        const dates = Object.keys(messagesByDate);
-        return dates.map((date) => {
-            const messagesOnCurrentDate = messagesByDate[date];
-            const text = dateToText(date);
-            return (
-                <DateContainer key={date} data-date={date}>
-                    <DateOfMessage isShow={isShowTooltip}>{text}</DateOfMessage>
-                    {messagesOnCurrentDate.map((msg) => {
-                        const isFromSelfMsg = msg.from === auth.id;
-                        const timeInMilliseconds = parseDateFromId(msg._id);
-                        const time = lightFormat(timeInMilliseconds, 'HH-MM');
-                        return (
-                            <SingleMessage
-                                align={
-                                    isFromSelfMsg ? 'flex-end' : 'flex-start'
-                                }
-                                key={msg._id}
-                            >
-                                {msg.messageBody}
-                                <TimeOnMessage>
-                                    {time.split('-').join(':')}
-                                </TimeOnMessage>
-                            </SingleMessage>
-                        );
-                    })}
-                </DateContainer>
-            );
-        });
-    }, [chat.messages.length, chat.idCurrentPrivateRoom, isShowTooltip]);
+    const messagesByDate = splitMessageByDate(chatStore.messages);
+    const dates = Object.keys(messagesByDate);
+    const CLASS_SMOOTH = 'smooth';
 
     return (
         <>
             <HeaderContainer>
-                <Title>{chat.interlocutorName}</Title>
+                <Title>{chatStore.interlocutorName}</Title>
                 <GoHome></GoHome>
                 <Logout />
             </HeaderContainer>
             <FlexContainer isShow={isShowContent}>
                 <MessagesContainer
                     ref={containerRef}
-                    className={isSmoothScroll.current ? 'smooth' : ''}
+                    className={isSmoothScroll.current ? CLASS_SMOOTH : ''}
                     onScroll={throttledHandleScroll}
                 >
-                    {/* <DateTooltip isShow={isShowTooltip}>
-                        {tooltipDay}
-                    </DateTooltip> */}
-                    {memoizedMessages}
+                    {dates.map((date) => {
+                        const messagesOnCurrentDate = messagesByDate[date];
+                        const text = dateToText(date);
+                        return (
+                            <DateContainer key={date} data-date={date}>
+                                <DateOfMessage isShow={isShowTooltipOfDate}>
+                                    {text}
+                                </DateOfMessage>
+                                {messagesOnCurrentDate.map((msg) => {
+                                    const isFromSelfMsg = msg.from === authStore.id;
+                                    const timeInMilliseconds = parseDateFromId(
+                                        msg._id,
+                                    );
+                                    const time = lightFormat(
+                                        timeInMilliseconds,
+                                        'HH-MM',
+                                    );
+                                    return (
+                                        <SingleMessage
+                                            align={
+                                                isFromSelfMsg
+                                                    ? 'flex-end'
+                                                    : 'flex-start'
+                                            }
+                                            key={msg._id}
+                                        >
+                                            {msg.messageBody}
+                                            <TimeOnMessage>
+                                                {time.split('-').join(':')}
+                                            </TimeOnMessage>
+                                        </SingleMessage>
+                                    );
+                                })}
+                            </DateContainer>
+                        );
+                    })}
                 </MessagesContainer>
                 <SendBox onSubmit={handleSubmit}>
                     <MessageInput

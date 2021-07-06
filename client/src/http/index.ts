@@ -11,3 +11,10 @@ export const startInterceptor = (token: string, api: AxiosInstance) => {
         return config;
     })
 };
+export const clientSideApi = api();
+export const clientSideStartInterceptor = (token: string) => {
+    clientSideApi.interceptors.request.use((config: AxiosRequestConfig ) => {
+        config.headers.Authorization = `Bearer ${token}`;
+        return config;
+    })
+};

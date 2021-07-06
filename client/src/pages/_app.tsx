@@ -7,6 +7,8 @@ import auth from '../store/auth';
 import chat from '../store/chat';
 
 import { ContextAuth, ContextChat } from '../store/contexts';
+import useInitChatStore from '../hooks/useInitChatStore';
+import useInitAuthStore from '../hooks/useInitAuthStore';
 
 import { theme } from '../constants/theme';
 
@@ -26,6 +28,8 @@ export default function App({
     Component: any;
     pageProps: any;
 }) {
+    const authStore = useInitAuthStore(pageProps.initialAuthStore);
+    const chatStore = useInitChatStore(pageProps.initialChatStore);
     return (
         <>
             <ThemeProvider theme={theme}>

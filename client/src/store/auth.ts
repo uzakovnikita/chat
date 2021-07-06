@@ -9,13 +9,9 @@ export class Auth {
 
     isLogin = false;
     email: null | string = null;
-    err: string = '';
+    err: null| string = null;
     id: null | string = null;
     accessToken: null | string = null;
-
-    initAuth() {
-        runInAction(() => {});
-    }
 
     async login(email: string, password: string) {
         const axiosInstance = api();
@@ -35,6 +31,12 @@ export class Auth {
         localStorage.removeItem('name');
         localStorage.removeItem('userID');
     }
+
+    keysOfSimpleData = ['isLogin', 'email', 'err', 'id', 'accessToken']
+
+    keysOfArrayData = []
+
+    keysOfObjectData = []
 }
 
 export default new Auth();
