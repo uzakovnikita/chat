@@ -28,8 +28,8 @@ export default function App({
     Component: any;
     pageProps: any;
 }) {
-    const authStore = useInitAuthStore(pageProps.initialAuthStore);
-    const chatStore = useInitChatStore(pageProps.initialChatStore);
+    // const authStore = useInitAuthStore(pageProps.initialAuthStore);
+    // const chatStore = useInitChatStore(pageProps.initialChatStore);
     return (
         <>
             <ThemeProvider theme={theme}>
