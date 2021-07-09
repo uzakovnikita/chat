@@ -32,11 +32,7 @@ export class Auth {
         localStorage.removeItem('userID');
     }
 
-    keysOfSimpleData = ['isLogin', 'email', 'err', 'id', 'accessToken']
 
-    keysOfArrayData = []
-
-    keysOfObjectData = []
 }
 
 export default new Auth();

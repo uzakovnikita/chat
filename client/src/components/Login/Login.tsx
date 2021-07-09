@@ -1,15 +1,17 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { FunctionComponent } from 'react';
 import { observer } from "mobx-react"
 
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
+import useAuthContext from '../../hooks/useAuthContext';
+
 import AuthForm from '../../components/styledComponents/AuthForm';
 import Button from '../../components/styledComponents/Button';
 import AuthInput from '../../components/styledComponents/AuthInput';
 import Text from '../../components/styledComponents/Text';
-import { ContextAuth } from '../../store/contexts';
+
 import { Auth } from '../../store/auth';
 
 const SignupContainer = styled.div`
@@ -23,12 +25,13 @@ const SignupContainer = styled.div`
 const Login: FunctionComponent = () => {
     const [email, setName] = useState('');
     const [password, setPassword] = useState('');
-    const auth = useContext(ContextAuth) as Auth;
+    const authStore = useAuthContext() as Auth;
+
     const router = useRouter();
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await auth.login(email, password);
+            await authStore.login(email, password);
             router.push('/rooms', undefined, {
                 shallow: true
             });

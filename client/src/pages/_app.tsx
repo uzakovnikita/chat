@@ -2,13 +2,10 @@ import NProgress from 'nprogress';
 import Router from 'next/router';
 import Head from 'next/dist/next-server/lib/head';
 import { ThemeProvider } from 'styled-components';
-
-import auth from '../store/auth';
-import chat from '../store/chat';
-
+import { Auth } from '../store/auth';
+import { Chat } from '../store/chat';
 import { ContextAuth, ContextChat } from '../store/contexts';
-import useInitChatStore from '../hooks/useInitChatStore';
-import useInitAuthStore from '../hooks/useInitAuthStore';
+import useInitStore from '../hooks/useInitStore';
 
 import { theme } from '../constants/theme';
 
@@ -28,13 +25,13 @@ export default function App({
     Component: any;
     pageProps: any;
 }) {
-    // const authStore = useInitAuthStore(pageProps.initialAuthStore);
-    // const chatStore = useInitChatStore(pageProps.initialChatStore);
+    const authStore = useInitStore<Auth>(Auth, pageProps.initialAuthStore);
+    const chatStore = useInitStore<Chat>(Chat, pageProps.initialChatStore);
     return (
         <>
             <ThemeProvider theme={theme}>
-                <ContextAuth.Provider value={auth}>
-                    <ContextChat.Provider value={chat}>
+                <ContextAuth.Provider value={authStore}>
+                    <ContextChat.Provider value={chatStore}>
                         <Head>
                             <link
                                 rel='stylesheet'
