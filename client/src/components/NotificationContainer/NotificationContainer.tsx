@@ -20,9 +20,8 @@ const NotificationContainerStyled = styled.div`
 const NotificationContainer = () => {
     const chatStore = useChatContext() as Chat;
     const onClick = (id: string) => () => {
-        console.log(id);
         chatStore.notifications = chatStore.notifications.filter(
-            ({ message: { _id } }) => id !== _id,
+            ({_id}) => id !== _id,
         );
     };
 
@@ -37,8 +36,8 @@ const NotificationContainer = () => {
                     <Notification
                         onClick={onClick}
                         onStartTransitionToRoom={onStartTransitionToRoom}
-                        message={notify.message}
-                        from={notify.from}
+                        message={notify}
+                        from={notify.from.email}
                     ></Notification>
                 );
             })}

@@ -6,10 +6,12 @@ class ApiError extends Error {
     }
 
     static UnauthorizedError() {
+        console.log('UnauthorizedError');
         return new ApiError(401, 'Пользователь не авторизован', )
     }
 
     static BadRequest(message, errors = []) {
+        console.log('BadRequest');
         return new ApiError(400, message, errors)
     }
 }

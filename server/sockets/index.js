@@ -31,18 +31,25 @@ io.on('connection', async (socket) => {
         userID: socket.userID,
     });
     socket.on('private message', async ({ room, from, to, content }) => {
-        const newMsg = Message({ messageBody: content, from, to , room});
+        const newMsg = Message({ messageBody: content, from, to, room });
         await newMsg.save();
         await Rooms.updateOne(
             { _id: room },
             {
                 $push: {
-                    "messages": newMsg._id
-                }
+                    messages: newMsg._id,
+                },
             },
         );
-        const senderName = (await Message.findById(newMsg._id).populate('from')).from.email;
-        io.to(room).emit('private message', {message: newMsg, from: senderName});
+
+        const result = {
+            _id: newMsg._id,
+            messageBody: newMsg.messageBody,
+            from: newMsg.from,
+            to: newMsg.to,
+            roomId: newMsg.room,
+        };
+        io.to(room).emit('private message', result);
     });
     socket.on('disconnect', async () => {
         const mathcingSockets = await io.in(socket.userID).allSockets();

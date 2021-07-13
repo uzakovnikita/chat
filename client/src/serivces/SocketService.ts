@@ -14,7 +14,7 @@ class SocketService {
     leave(id: string) {
         this.socket.emit('leave', { room: id });
     }
-    send<T>(content: T, from: T, to: T, room: T) {
+    send<T>(content: T, from: {email: T, _id: T}, to: {email: T, _id: T}, room: T) {
         this.socket.emit('private message', {
             content,
             from,

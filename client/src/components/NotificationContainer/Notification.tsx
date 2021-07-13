@@ -112,7 +112,7 @@ const Notification = ({
                         : message.messageBody}
                 </Text>
             </Notify>
-            <Link href={`/rooms/${message.room}`} shallow={false}>
+            <Link href={`/rooms/${message.roomId}`} shallow={false}>
                 <StyledLink onClick={onStartTransitionToRoom}></StyledLink>
             </Link>
         </NotifyWrapper>

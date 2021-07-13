@@ -9,7 +9,7 @@ import { api, startInterceptor } from '../../http/index';
 
 import AuthService from '../../serivces/AuthService';
 import MessagesService from '../../serivces/MessagesService';
-import DialogService from '../../serivces/DialogsService';
+import RoomsService from '../../serivces/RoomsService';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
@@ -19,55 +19,21 @@ import NotificationContainer from '../../components/NotificationContainer';
 import PrivateRoom from '../../components/containers/PrivateRoom';
 import Main from '../../components/styledComponents/Main';
 
-import { Chat } from '../../store/chat';
-import { Auth } from '../../store/auth';
-import { message, room } from '../../constants/types';
-
-type Props = {
-    messages: message[];
-    isLogin: boolean;
-    user: {
-        email: string;
-        id: string;
-        isActivated: boolean;
-        accessToken: string;
-    } | null;
-
-    room: room | null;
-    dialogs: {
-        roomId: string;
-        interlocutorName: string;
-        interlocutorId: string;
-    }[];
-};
-
-const PrivateRoomPage: FunctionComponent<Props> = (props) => {
-    const { messages, user, dialogs, isLogin, room } = props;
+const PrivateRoomPage: FunctionComponent = () => {
     
-    const chatStore = useChatContext() as Chat;
-    const authStore = useAuthContext() as Auth;
+    const chatStore = useChatContext();
+    const authStore = useAuthContext();
 
-    useAuth(isLogin, '/auth');
+    useAuth(!authStore.isLogin, '/auth');
 
     useEffect(() => {
         const axiosInstance = api();
-        if (isLogin) {
-            startInterceptor(user!.accessToken, axiosInstance);
-            AuthService.refresh(axiosInstance);
+        chatStore.audio = new Audio('/sounds/notify.mp3');
+        if (authStore.isLogin) {
+            startInterceptor(authStore.accessToken as string, axiosInstance);
             runInAction(() => {
-                chatStore.isFetchedMessage = true;
-                chatStore.messages = messages;
-                chatStore.connect(user!.id);
-                chatStore.setRooms = dialogs;
-                chatStore.listenAllRooms(user!.id);
-                chatStore.join(
-                    room!.roomId,
-                    room!.interlocutorName,
-                    room!.interlocutorId,
-                );
-                authStore.id = user!.id;
-                authStore.email = user!.email;
-                authStore.accessToken = user!.accessToken;
+                chatStore.connect(authStore.id as string);
+                chatStore.listenAllRooms(authStore.id as string);
             });
         }
         return () => {
@@ -77,10 +43,6 @@ const PrivateRoomPage: FunctionComponent<Props> = (props) => {
                 chatStore.idCurrentPrivateRoom = null;
             });
         };
-    }, [props]);
-
-    useEffect(() => {
-        chatStore.audio = new Audio('/sounds/notify.mp3');
     }, []);
 
     return (
@@ -101,36 +63,55 @@ export default observer(PrivateRoomPage);
 export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         const axiosInstance = api();
+
         const {
             data: { user },
         } = await AuthService.isLogin(axiosInstance, context);
+
         startInterceptor(user.accessToken, axiosInstance);
+
         const {
-            data: { dialogs },
-        } = await DialogService.getDialogs(axiosInstance);
+            data: { rooms },
+        } = await RoomsService.getRooms(axiosInstance);
 
         const { id } = context.query;
+
         const {
             data: { messages },
         } = await MessagesService.getMessages(axiosInstance, id as string, 0);
 
-        const room = dialogs.find(({ roomId }) => roomId === id);
+        const room = rooms.find(({ roomId }) => roomId === id);
+
         return {
             props: {
-                isLogin: true,
-                user,
-                messages,
-                room, 
-                dialogs
+                initialAuthStore: {
+                    isLogin: true,
+                    id: user.id,
+                    email: user.email,
+                    isHydrated: true,
+                    accessToken: user.accessToken,
+                },
+                initialChatStore: {
+                    messages,
+                    rooms,
+                    isFetchedMessage: true,
+                    idCurrentPrivateRoom: room?.roomId,
+                    interlocutorName: room!.interlocutorName,
+                    interlocutorId: room!.interlocutorId,
+                    isPrivateRoom: true,
+                    isJoined: true,
+                },
             },
         };
     } catch (err) {
         return {
             props: {
-                isLogin: false,
-                user: null,
-                messages: [],
-                room: null,
+                initialAuthStore: {
+                    isLogin: false,
+                    isHydrated: true,
+                    accessToken: null
+                },
+                err: JSON.stringify(err, null, 4),
             },
         };
     }

@@ -16,15 +16,13 @@ import HeaderContainer from '../../styledComponents/HeaderContainer';
 import { Chat } from '../../../store/chat';
 import { Auth } from '../../../store/auth';
 
-
 const CardText = styled.span`
     position: relative;
     z-index: 10;
     font-size: 20px;
-    font-family: ${props => props.theme.fonts.primary};
+    font-family: ${(props) => props.theme.fonts.primary};
     margin-bottom: 10px;
 `;
-
 
 const LastMessageContainer = styled.p`
     width: 100%;
@@ -37,18 +35,17 @@ const LastMessageContainer = styled.p`
 `;
 
 const LastMessageAuthor = styled.span`
-    font-family: ${props => props.theme.fonts.primary};
+    font-family: ${(props) => props.theme.fonts.primary};
     font-size: 18px;
-    color: ${props => props.theme.colors['turquoise']};
+    color: ${(props) => props.theme.colors['turquoise']};
 `;
 
 const LastMessageText = styled.span`
-    font-family: ${props => props.theme.fonts.primary};
+    font-family: ${(props) => props.theme.fonts.primary};
     font-size: 16px;
-    color: ${props => props.theme.colors.white};
+    color: ${(props) => props.theme.colors.white};
     margin-left: 10px;
 `;
-
 
 const Rooms: FunctionComponent = () => {
     const chatStore = useChatContext() as Chat;
@@ -58,20 +55,16 @@ const Rooms: FunctionComponent = () => {
     const handleUserClick =
         (roomId: string, interlocutorName: string, interlocutorId: string) =>
         (): void => {
-            chatStore.join(
-                roomId,
-                interlocutorName,
-                interlocutorId,
-            );
-            router.push(`/rooms/${roomId}`)
+            chatStore.join(roomId, interlocutorName, interlocutorId);
+            router.push(`/rooms/${roomId}`);
         };
 
     return (
         <>
             <HeaderContainer>
                 <Title>Users List</Title>
-                <SelfName/>
-                <Logout/>
+                <SelfName />
+                <Logout />
             </HeaderContainer>
             <Flex width='100%' height='100%' justify='flex-start'>
                 {chatStore.rooms?.map(
@@ -88,10 +81,21 @@ const Rooms: FunctionComponent = () => {
                                 <CardText>{interlocutorName}</CardText>
                                 <LastMessageContainer>
                                     <LastMessageAuthor>
-                                        {chatStore.lastMessagesInEachRooms[roomId] && chatStore.lastMessagesInEachRooms[roomId]?.from === authStore.id ? 'You' : interlocutorName}: 
+                                        {chatStore.lastMessagesInRooms[
+                                            roomId
+                                        ] &&
+                                        chatStore.lastMessagesInRooms[roomId]
+                                            .from._id === authStore.id
+                                            ? 'You'
+                                            : interlocutorName}
+                                        :
                                     </LastMessageAuthor>
                                     <LastMessageText>
-                                    {chatStore.lastMessagesInEachRooms[roomId]?.messageBody}
+                                        {
+                                            chatStore.lastMessagesInRooms[
+                                                roomId
+                                            ].messageBody
+                                        }
                                     </LastMessageText>
                                 </LastMessageContainer>
                             </Card>

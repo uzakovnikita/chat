@@ -25,8 +25,8 @@ const Name = styled.span`
 `;
 
 const SelfName = () => {
-    const authStore = useAuthContext() as Auth;
-    console.log(authStore?.email)
+    const authStore = useAuthContext();
+
     return (
         <NameContainer>
             <Name>{authStore.email}</Name>

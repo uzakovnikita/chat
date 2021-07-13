@@ -1,7 +1,7 @@
 import { EVENTS_OF_FSM_IN_PRIVATE_ROOM } from '../constants/enums';
 
-const detectTypeOfEvent = (isFetchedMessages: boolean, lengthListOfMessages: number, oldLengthListOfMessages: number, container: HTMLDivElement): string => {
-    if (isFetchedMessages && oldLengthListOfMessages === 0) {
+const detectTypeOfEvent = (isHydratedOld: boolean, isHydratedNew: boolean,isFetchedMessages: boolean, lengthListOfMessages: number, oldLengthListOfMessages: number, container: HTMLDivElement): string => {
+    if (!isHydratedOld && isHydratedNew) {
         return EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT;
     }
     if (isFetchedMessages && lengthListOfMessages !== oldLengthListOfMessages) {

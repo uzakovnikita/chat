@@ -7,12 +7,28 @@ const messageSchema = new Schema({
         required: true,
     },
     from: {
-        ref: 'users',
-        type: Schema.Types.ObjectId,
+        email: {
+            ref: 'users',
+            type: String,
+            required: true,
+        },
+        _id: {
+            ref: 'users',
+            type: Schema.Types.ObjectId,
+            required: true,
+        }
     },
     to: {
-        ref: 'users',
-        type: Schema.Types.ObjectId,
+        email: {
+            ref: 'users',
+            type: String,
+            required: true,
+        },
+        _id: {
+            ref: 'users',
+            type: Schema.Types.ObjectId,
+            required: true,
+        }
     },
     room: {
         ref: 'rooms',

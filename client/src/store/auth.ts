@@ -1,10 +1,13 @@
-import { makeAutoObservable, runInAction } from 'mobx';
+import { action, makeAutoObservable, runInAction } from 'mobx';
+import { enableStaticRendering } from 'mobx-react-lite';
 import { api } from '../http';
 import AuthService from '../serivces/AuthService';
-
+enableStaticRendering(typeof window === 'undefined')
 export class Auth {
     constructor() {
-        makeAutoObservable(this);
+        makeAutoObservable(this, {
+            hydrate: action.bound
+        });
     }
 
     isLogin = false;
@@ -12,6 +15,7 @@ export class Auth {
     err: null| string = null;
     id: null | string = null;
     accessToken: null | string = null;
+    isHydrated = false;
 
     async login(email: string, password: string) {
         const axiosInstance = api();
@@ -26,12 +30,13 @@ export class Auth {
     }
 
     signOut() {
-        this.isLogin = false;
-        this.email = null;
-        localStorage.removeItem('name');
-        localStorage.removeItem('userID');
-    }
 
+    }
+    hydrate(props: this) {
+        for (const prop in props) {
+            this[prop] = props[prop];
+        }
+    }
 
 }
 

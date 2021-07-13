@@ -11,10 +11,11 @@ module.exports.messages = async function (req, res, next) {
 };
 
 module.exports.lastmessagesinrooms = async function (req, res, next) {
-    const rooms  = req.body;
+    const rooms = req.body;
+
     try {
         const messages = await messageService.getLastMessagesInRooms(rooms);
-        res.json({messages});
+        res.json({lastMessagesInRooms: messages});
     } catch (err) {
         next(err);
     }

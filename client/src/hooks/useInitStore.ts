@@ -1,24 +1,31 @@
+import { useMemo } from 'react';
 import initStore from '../utils/initStore';
-import mutateStore from '../utils/mutateStore';
 
-let clientSideStore: { [key: string]: any } = {};
+type Store<T = unknown> = Record<string, T>;
 
-const useInitStore = <T>(Class: new () => T, props: T) => {
+let clientSideStore: Store = {};
+
+const initializeStore = <T extends {hydrate(props: T): void}>(Class: new () => T, props: T): T => {
+    // на сервере всегда создаём новое состояние
     if (typeof window === 'undefined') {
         return initStore(Class, props);
     }
-    if (clientSideStore[Class.prototype.constructor.name]) {
-        clientSideStore[Class.prototype.constructor.name] = mutateStore(
-            clientSideStore as T,
-            props,
-        );
+    // на клиенте инициализируем состояние только один раз
+    const className = Class.prototype.constructor.name;
+    if (clientSideStore[className]) {
+        (clientSideStore[className] as T).hydrate(props);
     } else {
-        clientSideStore[Class.prototype.constructor.name] = initStore(
+        clientSideStore[className] = initStore(
             Class,
             props,
         );
     }
-    return clientSideStore[Class.prototype.constructor.name] as T;
+    return clientSideStore[className] as T;
 };
+
+const useInitStore = <T extends {hydrate(props: T): void}>(Class: new () => T, props: T): T => {
+    const store = useMemo(() => initializeStore(Class, props), [props]);
+    return store;
+}
 
 export default useInitStore;

@@ -1,12 +1,15 @@
-import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 
 import socketService from '../serivces/SocketService';
 
 import { users, room, message } from '../constants/types';
-
+import { enableStaticRendering } from 'mobx-react-lite';
+enableStaticRendering(typeof window === 'undefined')
 export class Chat {
     constructor() {
-        makeAutoObservable(this);
+        makeAutoObservable(this, {
+            hydrate: action.bound
+        });
     }
     users: users = [];
 
@@ -17,15 +20,13 @@ export class Chat {
     interlocutorName: string | null = null;
     interlocutorId: string | null = null;
     isSubscribedOnPrivateMessage: boolean = false;
-    isShowPreloader = false;
-    isSsrGidrated = false;
     isJoined = false;
     isFetchedMessage = false;
-    notifications: { message: message; from: string }[] = observable([]);
-
+    notifications: message[] = observable([]);
+    subscribedToRooms: boolean = false;
     messages: message[] = [];
 
-    lastMessagesInEachRooms: {
+    lastMessagesInRooms: {
         [roomId: string]: message;
     } = observable({});
 
@@ -49,21 +50,25 @@ export class Chat {
         });
     }
 
-    send(content: string, from: string) {
+    send(content: string, from: {email: string, _id: string}) {
+        const to = {
+            _id: this.interlocutorId as string,
+            email: this.interlocutorName as string,
+        }
         socketService.send<string>(
             content.trim(),
             from,
-            this.interlocutorId as string,
+            to,
             this.idCurrentPrivateRoom as string,
         );
     }
 
     listenAllRooms(selfId: string) {
-        if (this.isJoined) {
+        if (this.isSubscribedOnPrivateMessage) {
             return;
         }
         if (Array.from(this.rooms).length > 0) {
-            this.isJoined = true;
+            this.isSubscribedOnPrivateMessage = true;
         }
         this.rooms.forEach(({ roomId }) => {
             socketService.join<string>(roomId, selfId);
@@ -71,7 +76,11 @@ export class Chat {
         socketService.listenAllRooms(this.messageHandler.bind(this));
     }
 
-    messageHandler(message: { message: message; from: string }) {
+    disconnectFromAllRooms() {
+
+    }
+
+    messageHandler(message: message) {
         this.notifyHandler(message);
         if (this.isPrivateRoom) {
             this.messageHanlderInPrivateRoom(message);
@@ -80,9 +89,9 @@ export class Chat {
         }
     }
 
-    notifyHandler(message: { message: message; from: string }) {
+    notifyHandler(message: message) {
         this.audio.play();
-        if (this.idCurrentPrivateRoom === message.message.room) {
+        if (this.idCurrentPrivateRoom === message.roomId) {
             return;
         }
         this.notifications.push(message);
@@ -91,22 +100,28 @@ export class Chat {
         }, 4000);
     }
 
-    messageHanlderInPrivateRoom(message: { message: message; from: string }) {
-        if (this.idCurrentPrivateRoom === message.message.room) {
-            this.messages.push(message.message);
+    messageHanlderInPrivateRoom(message: message) {
+        if (this.idCurrentPrivateRoom === message.roomId) {
+            this.messages.push(message);
         }
-        this.lastMessagesInEachRooms[message.message.room] = message.message;
+        this.lastMessagesInRooms[message.roomId] = message;
     }
 
-    messageHandlerInUsersList(message: { message: message; from: string }) {
+    messageHandlerInUsersList(message: message) {
         const {
-            message: { room },
+            roomId,
         } = message;
-        this.lastMessagesInEachRooms[room] = message.message;
+        this.lastMessagesInRooms[roomId] = message;
     }
 
     set setRooms(rooms: room[]) {
         this.rooms = rooms;
+    }
+
+    hydrate(props: this) {
+        for (const prop in props) {
+            this[prop] = props[prop];
+        }
     }
 }
 

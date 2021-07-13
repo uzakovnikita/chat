@@ -6,10 +6,10 @@ module.exports.rooms = async function (req, res, next) {
     const accessToken = authorizationHeader.split(' ')[1];
     try {
         const user = await tokenService.validateAccessToken(accessToken);
-        const dialogs = await roomService.getDialogs(user.id);
+        const rooms = await roomService.getRooms(user.id);
         return res.json({
             message: 'get rooms success',
-            dialogs,
+            rooms,
         });
     } catch (err) {
         next(err);

@@ -1,4 +1,3 @@
-import { api } from '../http';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { IAuthResponse, IIsLoginResponse } from '../constants/interfaces';
 import { URLS } from '../constants/enums';
@@ -18,12 +17,17 @@ export default class AuthService {
                 }
                 return acc;
             }, '');
+
         const config = {
             headers: {
                 'Authorization': `Refresh ${refreshToken}`
             }
         }
         return api.get(URLS.IsLogin, config);
+    }
+
+    static async isLoginOnClient(api: AxiosInstance): Promise<AxiosResponse<IIsLoginResponse>> {
+        return api.get(URLS.IsLogin);
     }
 
     static async login(api: AxiosInstance, email: string, password: string): Promise<AxiosResponse<IAuthResponse>> {

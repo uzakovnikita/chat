@@ -7,14 +7,14 @@ export default class MessagesService {
     static async getMessages(api: AxiosInstance, id: string, count: number): Promise<AxiosResponse<{messages: message[]}>> {
         return api.get(`${URLS.Messages}?roomId=${id}&count=${count}`);
     }
-    static async getLastMessagesInRooms(api: AxiosInstance, roomIds: string[]): Promise<AxiosResponse<{messages: message[]}>> {
+    static async getLastMessagesInRooms(api: AxiosInstance, roomIds: string[]): Promise<AxiosResponse<{[key: string]: message}>> {
         const data = JSON.stringify(roomIds);
         const config = {
             headers: {
                 'content-type': 'application/json',
             }
         }
-        return api.post(URLS.LastMessagesInRooms, data, config);
+        return api.post<{[key: string]: message}>(URLS.LastMessagesInRooms, data, config);
     }
 };
 

@@ -175,17 +175,22 @@ const PrivateRoom: FunctionComponent = () => {
     const isSmoothScroll = useRef(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const timerIdForThrottleRef = useRef<NodeJS.Timeout | null>(null);
+    const isHydrated = useRef(false);
 
     // FSM HOOK
     // в зависимости от связки событие+состояние(stateMachine) мы получаем необходимые побочные эффекты и новое состояние stateMachine
     // иногда событие не может быть определено через параметры функции detectTypeOfEvent, 
     // тогда событие генерируется прямо в хуке и записывается в переменную selfGeneratingEvent
+    // используется для упрощения работы с различными положениями скролла
     useEffect(() => {
         const axiosInstance = api();
         startInterceptor(authStore.accessToken as string, axiosInstance);
         const event =
             selfGeneratingEvent.current ||
             detectTypeOfEvent(
+                isHydrated.current,
+                authStore.isHydrated,
                 chatStore.isFetchedMessage,
                 chatStore.messages.length,
                 prevNumberOfMessages.current,
@@ -205,6 +210,7 @@ const PrivateRoom: FunctionComponent = () => {
                         setIsShowContent(true);
                         setIsShowArrDown(false);
                         isSmoothScroll.current = true;
+                        isHydrated.current = true;
                         break;
                     }
                     default:
@@ -364,7 +370,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -375,7 +381,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -398,7 +404,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -409,7 +415,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -427,7 +433,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -438,7 +444,7 @@ const PrivateRoom: FunctionComponent = () => {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP: {
                         const lastMessage =
                             chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg = lastMessage.from === authStore.id;
+                        const isFromSelfMsg = lastMessage.from._id === authStore.id;
                         if (isFromSelfMsg) {
                             return;
                         }
@@ -463,14 +469,16 @@ const PrivateRoom: FunctionComponent = () => {
     ]);
 
     useEffect(() => {
-        document.addEventListener('mousemove', throttledHandle);
-        containerRef.current!.addEventListener('scroll', () => {
-            throttledHandle();
-        });
+        document.addEventListener('mousemove', handleMouseMove);
+        containerRef.current!.addEventListener('scroll', handleMouseMove);
         return () => {
-            document.removeEventListener('mousemove', throttledHandle);
+            document.removeEventListener('mousemove', handleMouseMove);
+            containerRef.current?.removeEventListener('scroll', handleMouseMove);
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
+            }
+            if (timerIdForThrottleRef.current) {
+                clearTimeout(timerIdForThrottleRef.current)
             }
         };
     }, [chatStore.idCurrentPrivateRoom]);
@@ -480,7 +488,7 @@ const PrivateRoom: FunctionComponent = () => {
         if (messageText.length < 1) {
             return;
         }
-        chatStore.send(messageText, authStore.id as string);
+        chatStore.send(messageText, {email: authStore.email as string, _id: authStore.id as string});
         setMessageText('');
     };
 
@@ -490,7 +498,7 @@ const PrivateRoom: FunctionComponent = () => {
             if (messageText.trim().length < 1) {
                 return;
             }
-            chatStore.send(messageText, authStore.id as string);
+            chatStore.send(messageText, {email: authStore.email as string, _id: authStore.id as string});
             setMessageText('');
         }
     };
@@ -514,8 +522,7 @@ const PrivateRoom: FunctionComponent = () => {
         setScrollTop((e.target as HTMLDivElement).scrollTop);
     };
 
-    const throttledHandle = useThrottle(handleMouseMove, 100);
-    const throttledHandleScroll = useThrottle(handleScroll, 300);
+    const throttledHandleScroll = useThrottle(handleScroll, 300, timerIdForThrottleRef);
     const messagesByDate = splitMessageByDate(chatStore.messages);
     const dates = Object.keys(messagesByDate);
     const CLASS_SMOOTH = 'smooth';
@@ -542,7 +549,7 @@ const PrivateRoom: FunctionComponent = () => {
                                     {text}
                                 </DateOfMessage>
                                 {messagesOnCurrentDate.map((msg) => {
-                                    const isFromSelfMsg = msg.from === authStore.id;
+                                    const isFromSelfMsg = msg.from._id === authStore.id;
                                     const timeInMilliseconds = parseDateFromId(
                                         msg._id,
                                     );

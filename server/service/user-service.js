@@ -125,11 +125,13 @@ class UserService {
 
     async isLogined(refreshToken) {
         if (!refreshToken) {
+            console.log('token is empty')
             throw ApiError.UnauthorizedError('Token is empty');
         }
         const tokenFromDb = await tokenService.findRefreshToken(refreshToken);
         const userData = await tokenService.validateRefreshToken(refreshToken);
         if (!tokenFromDb || !userData) {
+            console.log('Not valid refresh token', refreshToken);
             throw ApiError.UnauthorizedError('Not valid refresh token');
         }
         const user = await User.findById(userData.id);

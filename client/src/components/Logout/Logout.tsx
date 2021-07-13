@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import AuthService from "../../serivces/AuthService";
 import { useRouter } from "next/router";
+import { api } from "../../http";
 
 const LogoutButton = styled.button`
     width: 150px;
@@ -45,7 +46,8 @@ const LogoutText = styled.span`
 const Logout = () => {
     const router = useRouter();
     const handleLogout = async () => {
-        await AuthService.logout();
+        const axiosInstance = api();
+        await AuthService.logout(axiosInstance);
         router.push('/auth');
     };
     return (

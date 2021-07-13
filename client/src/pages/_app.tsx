@@ -7,9 +7,12 @@ import { Chat } from '../store/chat';
 import { ContextAuth, ContextChat } from '../store/contexts';
 import useInitStore from '../hooks/useInitStore';
 
+
 import { theme } from '../constants/theme';
 
 import '../styles/index.css';
+
+
 
 NProgress.configure({ showSpinner: false });
 Router.events.on('routeChangeStart', () => {
@@ -27,6 +30,8 @@ export default function App({
 }) {
     const authStore = useInitStore<Auth>(Auth, pageProps.initialAuthStore);
     const chatStore = useInitStore<Chat>(Chat, pageProps.initialChatStore);
+
+
     return (
         <>
             <ThemeProvider theme={theme}>

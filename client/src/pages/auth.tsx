@@ -12,16 +12,18 @@ import Signup from '../components/Signup';
 import Button from '../components/styledComponents/Button';
 import Flex from '../components/styledComponents/Flex';
 import Main from '../components/styledComponents/Main';
+import useAuthContext from '../hooks/useAuthContext';
 
-const AuthPage: FunctionComponent<{isLogin: boolean}> = (props) => {
-    const {isLogin} = props;
+const AuthPage: FunctionComponent = () => {
+    const authStore = useAuthContext();
+
     const [view, setView] = useState(false);
-    useAuth(isLogin, '/rooms');
+    useAuth(authStore.isLogin, '/rooms');
 
     return (
         <Main>
-        {isLogin && null}
-        {!isLogin && 
+        {authStore.isLogin && null}
+        {!authStore.isLogin && 
                 <Flex width='100%' height='100%'>
                 <Button onClick={() => setView((prevState) => !prevState)}>
                     Switch login/signup
@@ -42,13 +44,19 @@ export const getServerSideProps: GetServerSideProps =  async (context) => {
         await AuthService.isLogin(instanceAxios, context);
         return {
             props: {
-                isLogin: true,
+                initialAuthStore: {
+                    isLogin: true,
+                    isHydrated: true,
+                },
             }
         }
     } catch (err) {
         return {
             props: {
-                isLogin: false
+                initialAuthStore: {
+                    isLogin: false,
+                    isHydrated: true,
+                },
             }
         }
     }
