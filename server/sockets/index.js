@@ -13,19 +13,16 @@ io.use((socket, next) => {
 });
 
 io.on('connection', async (socket) => {
-    // используется для того чтобы войти в комнату которую мы переопределили
     socket.on('join', async (data) => {
         socket.join(data.room);
     });
     socket.on('leave', (data) => {
         socket.leave(data.room);
     });
-    // для того чтобы подписчики клиентов получили событие что подключен новый пользователь
     socket.broadcast.emit('user connected', {
         userID: socket.id,
         username: socket.username,
     });
-    // отправляем данные с сессией чтобы клиент её потом сохранил
     socket.emit('session', {
         sessionID: socket.sessionID,
         userID: socket.userID,
@@ -41,7 +38,6 @@ io.on('connection', async (socket) => {
                 },
             },
         );
-
         const result = {
             _id: newMsg._id,
             messageBody: newMsg.messageBody,

@@ -175,7 +175,6 @@ const PrivateRoom: FunctionComponent = () => {
     const isSmoothScroll = useRef(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const timerIdForThrottleRef = useRef<NodeJS.Timeout | null>(null);
     const isHydrated = useRef(false);
 
     // FSM HOOK
@@ -477,9 +476,6 @@ const PrivateRoom: FunctionComponent = () => {
             if (timeoutIdRef.current) {
                 clearTimeout(timeoutIdRef.current);
             }
-            if (timerIdForThrottleRef.current) {
-                clearTimeout(timerIdForThrottleRef.current)
-            }
         };
     }, [chatStore.idCurrentPrivateRoom]);
 
@@ -522,7 +518,7 @@ const PrivateRoom: FunctionComponent = () => {
         setScrollTop((e.target as HTMLDivElement).scrollTop);
     };
 
-    const throttledHandleScroll = useThrottle(handleScroll, 300, timerIdForThrottleRef);
+    const throttledHandleScroll = useThrottle(handleScroll, 300);
     const messagesByDate = splitMessageByDate(chatStore.messages);
     const dates = Object.keys(messagesByDate);
     const CLASS_SMOOTH = 'smooth';

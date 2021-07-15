@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 const throttle = (cb: (...args: any[]) => void, ms: number, timerRef: React.MutableRefObject<NodeJS.Timeout | null>) => {
     let isThrottle = false,
         savedArgs: any[] | null,
@@ -14,20 +14,25 @@ const throttle = (cb: (...args: any[]) => void, ms: number, timerRef: React.Muta
         }
         cb.apply(this, args);
         isThrottle = true;
-        const timer = setTimeout(() => {
+        timerRef.current = setTimeout(() => {
             isThrottle = false;
             if (savedArgs) {
                 wrapperFunction.apply(savedThis, savedArgs);
                 savedArgs = savedThis = null;
             }
         }, ms);
-        timerRef.current = timer;
     };
     return wrapperFunction;
 };
 
-const useThrottle = (cb: (...args: any[]) => void, ms: number = 15, timer: React.MutableRefObject<NodeJS.Timeout | null>) => {
-    const result = useRef<(...args: any[]) =>void>(throttle(cb, ms, timer));
+const useThrottle = (cb: (...args: any[]) => void, ms: number = 15) => {
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const result = useRef<(...args: any[]) =>void>(throttle(cb, ms, timerRef));
+    useEffect(() => {
+        return () => {
+           clearTimeout(timerRef.current as NodeJS.Timeout);
+        }
+    }, [])
     return result.current;
 };
 
