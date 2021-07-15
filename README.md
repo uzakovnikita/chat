@@ -12,7 +12,7 @@ The main goal current project is improve my knowledge in the following technolog
 #### 2. WebSocket(Socket.io)
 #### 3. React
 #### 4. Jest
-#### 5. Nuxt.js
+#### 5. Next.js
 
 
 ## *Hot to use:*
@@ -42,4 +42,4 @@ start script "npm start"
 
 
 ## *Technical stack includes*: 
-CRA, MobX, Nuxt.js, Express.js, Socket.io, TypeScript, StyledComponents
+CRA, MobX, Next.js, Express.js, Socket.io, TypeScript, StyledComponents

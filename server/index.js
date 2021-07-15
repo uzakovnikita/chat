@@ -1,11 +1,11 @@
 const {server} = require('./app');
-const {start} = require('./db/index');
+require('./db/index');
+require('./sockets/index');
+
 const PORT = process.env.PORT || 1000;
 
 (async () => {
   try {
-    await start();
-    console.log('db is connected')
     server.listen(PORT, (err) => {
       if (err) {
         throw new Error(err);
@@ -13,9 +13,11 @@ const PORT = process.env.PORT || 1000;
       console.log(`server has been started on PORT ${PORT}`);
     });
   } catch(err) {
+
     console.log(err)
   }
-})()
+})();
+
 
 
 

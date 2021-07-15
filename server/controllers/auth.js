@@ -1,70 +1,72 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 
-const User = require('../db/models/User');
-const { JWT } = require('../config/keys');
+const ApiError = require('../exceptions/api-error');
+const userService = require('../service/user-service');
+const tokenService = require('../service/token-service');
 
-module.exports.register = async function(req, res) {
-    const candidate = await User.findOne({
-        name: req.body.name,
-    });
-
-    if (candidate) {
-        res.status(409).json({
-            message: 'user already exists'
-        });
-        return;
-    } 
-    
-    const salt = bcrypt.genSaltSync(10);
-    const password = String(req.body.password);
-    const user = new User({
-        name: req.body.name,
-        password: bcrypt.hashSync(password, salt),
-    });
+module.exports.register = async function (req, res, next) {
+    const { email, password } = req.body;
 
     try {
-        await user.save();
-        res.status(201).json({
-            message: 'user was created'
-        })
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return next(ApiError.BadRequest('Validate error', errors.array()));
+        }
+        const userData = await userService.register(email, password);
+        res.cookie('refreshToken', userData.refreshToken, {
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+        });
+        return res.status(200).json(userData);
     } catch (err) {
-        res.status(501).json({
-            message: 'user wasn\'t created'
-        })
-    }   
+        next(err);
+    }
+};
+
+module.exports.login = async function (req, res, next) {
+    const { email, password } = req.body;
+
+    try {
+        const userData = await userService.login(email, password);
+        return res.status(200).cookie('refreshToken', userData.refreshToken, {
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+        }).json({message: 'success', user: userData});
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports.logout = async function (req, res, next) {
+    try {
+        const { refreshToken } = req.cookies;
+        const token = await userService.logout(refreshToken);
+        res.clearCookie('refreshToken');
+        res.status(200).json({message: 'Logout success'});
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports.refresh = async function (req, res, next) {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+        const userData = await userService.refreshToken(refreshToken);
+        return res.status(200).cookie('refreshToken', userData.refreshToken, {
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+        }).json({message: 'success refresh'});
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports.isLogin = async function (req, res, next) {
+    try {
+        const refreshToken = req.cookies.refreshToken || req.headers.authorization.split(' ')[1];
+        const userData = await userService.isLogined(refreshToken);
+        return res.json({message: 'check is succes', user: {...userData}});
+    } catch (err) {
+        next(err);
+    }
 }
-
-module.exports.login = async function(req, res) {
-    const candidate = await User.findOne({name: req.body.name});
-
-    if (!candidate) {
-        res.status(404).json({
-            message: 'User with this name is not exists'
-        });
-        return;
-    }
-
-    const isEqualPassword = bcrypt.compareSync(String(req.body.password), candidate.password);
-    
-    if (isEqualPassword) {
-        const token = jwt.sign({
-            name: candidate.name,
-            userId: candidate._id,
-        }, JWT, {expiresIn: 60*60});
-        res.status(200).json({
-            token: `Bearer ${token}`,
-        });
-        return;
-    }
-
-    res.status(401).json({
-        message: 'Invalid password'
-    })
-};
-
-module.exports.logout = function(req, res) {
-    res.status(200).json({
-        logout: true,
-    });
-};

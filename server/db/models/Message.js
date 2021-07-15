@@ -7,13 +7,33 @@ const messageSchema = new Schema({
         required: true,
     },
     from: {
-        refs: 'users',
-        type: Schema.Types.ObjectId,
+        email: {
+            ref: 'users',
+            type: String,
+            required: true,
+        },
+        _id: {
+            ref: 'users',
+            type: Schema.Types.ObjectId,
+            required: true,
+        }
     },
     to: {
-        refs: 'users',
+        email: {
+            ref: 'users',
+            type: String,
+            required: true,
+        },
+        _id: {
+            ref: 'users',
+            type: Schema.Types.ObjectId,
+            required: true,
+        }
+    },
+    room: {
+        ref: 'rooms',
         type: Schema.Types.ObjectId,
-    }
+    },
 });
 
 module.exports = mongoose.model('messages', messageSchema);
