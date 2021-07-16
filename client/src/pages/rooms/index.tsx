@@ -90,8 +90,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     isHydrated: true,
                 },
                 initialChatStore: {},
-                err: JSON.stringify(err, null, 4),
-                message: 'rooms/index.tsx',
+                initialErrorsLogs: JSON.stringify(err),
             },
         };
     }

@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Chat } from "../store/chat";
+import Chat from "../store/Chat";
 import { ContextChat } from "../store/contexts";
 
 

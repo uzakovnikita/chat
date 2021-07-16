@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { observer } from 'mobx-react-lite';
 
 import useAuthContext from '../../hooks/useAuthContext';
-import { Auth } from '../../store/auth';
+import Auth from '../../store/Auth';
 
 const NameContainer = styled.div`
     height: 100%;

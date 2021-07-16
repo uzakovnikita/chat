@@ -9,6 +9,7 @@ export const theme = {
         'black': '#131414',
         'white': '#ffffff',
         'purple': '#8e2de2',
+        'red': '#fc0000',
         'turquoise': '#c1e7e8',
         'light-gray': '#cfd0d1',
         'purple-grad': 'linear-gradient(to right, #8e2de2, #4a00e0)',

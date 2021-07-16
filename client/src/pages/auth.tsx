@@ -13,6 +13,7 @@ import Button from '../components/styledComponents/Button';
 import Flex from '../components/styledComponents/Flex';
 import Main from '../components/styledComponents/Main';
 import useAuthContext from '../hooks/useAuthContext';
+import Error from '../components/containers/Error';
 
 const AuthPage: FunctionComponent = () => {
     const authStore = useAuthContext();
@@ -32,13 +33,14 @@ const AuthPage: FunctionComponent = () => {
                 {!view && <Signup />}
             </Flex>
         }
+        <Error/>
         </Main>
     );
 };
 
 export default AuthPage;
 
-export const getServerSideProps: GetServerSideProps =  async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
     const instanceAxios = api();
     try {
         await AuthService.isLogin(instanceAxios, context);
@@ -51,12 +53,28 @@ export const getServerSideProps: GetServerSideProps =  async (context) => {
             }
         }
     } catch (err) {
+        if (err.message.match(/401/gm)) {
+            return {
+                props: {
+                    initialAuthStore: {
+                        isLogin: false,
+                        isHydrated: true,
+                    },
+                    initialErrorsLogs: {
+                        errors: [],
+                    }
+                }
+            }
+        }
         return {
             props: {
                 initialAuthStore: {
                     isLogin: false,
                     isHydrated: true,
                 },
+                initialErrorsLogs: {
+                    errors: [JSON.stringify(err)],
+                }
             }
         }
     }

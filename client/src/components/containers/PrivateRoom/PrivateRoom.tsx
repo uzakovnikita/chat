@@ -32,8 +32,8 @@ import HeaderContainer from '../../styledComponents/HeaderContainer';
 import Logout from '../../Logout';
 import GoHome from '../../GoHome';
 
-import { Chat } from '../../../store/chat';
-import { Auth } from '../../../store/auth';
+import Chat from '../../../store/Chat';
+import Auth from '../../../store/Auth';
 import { message } from '../../../constants/types';
 import {
     EVENTS_OF_FSM_IN_PRIVATE_ROOM,
@@ -78,6 +78,7 @@ const TimeOnMessage = styled.span`
 const DateOfMessage = styled.span<isShowProps>`
     display: inline-flex;
     position: sticky;
+    z-index: 1000;
     top: 10px;
     align-items: center;
     justify-content: center;
@@ -121,7 +122,7 @@ const NewMessagesCounter = styled.button<isShowProps>`
 const DownArrow = styled.div<isShowProps>`
     position: absolute;
     top: 18px;
-    z-index: -10;
+    // z-index: -10;
     background-image: url('/images/svg/down.svg');
     background-size: cover;
     background-position: center;
@@ -177,11 +178,11 @@ const PrivateRoom: FunctionComponent = () => {
     const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const isHydrated = useRef(false);
 
-    // FSM HOOK
+    // FSM HOOK - используется для упрощения работы с различными положениями скролла
     // в зависимости от связки событие+состояние(stateMachine) мы получаем необходимые побочные эффекты и новое состояние stateMachine
     // иногда событие не может быть определено через параметры функции detectTypeOfEvent, 
     // тогда событие генерируется прямо в хуке и записывается в переменную selfGeneratingEvent
-    // используется для упрощения работы с различными положениями скролла
+
     useEffect(() => {
         const axiosInstance = api();
         startInterceptor(authStore.accessToken as string, axiosInstance);

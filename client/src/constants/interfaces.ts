@@ -15,3 +15,8 @@ export interface IIsLoginResponse {
         accessToken: string
     }
 }
+
+export interface BaseStore {
+    hydrate<T>(props: T): void,
+    errors?: Error[] | string[],
+}

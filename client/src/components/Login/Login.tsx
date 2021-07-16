@@ -12,7 +12,8 @@ import Button from '../../components/styledComponents/Button';
 import AuthInput from '../../components/styledComponents/AuthInput';
 import Text from '../../components/styledComponents/Text';
 
-import { Auth } from '../../store/auth';
+import Auth from '../../store/Auth';
+import useErrorsLogsContext from '../../hooks/useErrorsLogsContext';
 
 const SignupContainer = styled.div`
     margin: 0 auto;
@@ -25,7 +26,8 @@ const SignupContainer = styled.div`
 const Login: FunctionComponent = () => {
     const [email, setName] = useState('');
     const [password, setPassword] = useState('');
-    const authStore = useAuthContext() as Auth;
+    const authStore = useAuthContext();
+    const errorsLogs = useErrorsLogsContext();
 
     const router = useRouter();
     const handleLogin = async (e: React.FormEvent) => {
@@ -36,7 +38,8 @@ const Login: FunctionComponent = () => {
                 shallow: true
             });
         } catch (err) {
-            alert(`login failed with error, try refresh this page`)
+            errorsLogs.errors.push(err);
+            // alert(`login failed with error, try refresh this page`)
             console.log(err);
         }
     }

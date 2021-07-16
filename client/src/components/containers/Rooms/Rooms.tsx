@@ -13,8 +13,8 @@ import Logout from '../../Logout';
 import SelfName from '../../SelfName';
 import HeaderContainer from '../../styledComponents/HeaderContainer';
 
-import { Chat } from '../../../store/chat';
-import { Auth } from '../../../store/auth';
+import Chat from '../../../store/Chat';
+import Auth from '../../../store/Auth';
 
 const CardText = styled.span`
     position: relative;

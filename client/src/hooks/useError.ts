@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Chat } from "../store/chat";
+import Chat from "../store/Chat";
 import useChatContext from "./useChatContext";
 
 const useError = (error: any = null) => {

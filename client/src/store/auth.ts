@@ -1,9 +1,15 @@
 import { action, makeAutoObservable, runInAction } from 'mobx';
 import { enableStaticRendering } from 'mobx-react-lite';
+import { BaseStore } from '../constants/interfaces';
+
 import { api } from '../http';
+
 import AuthService from '../serivces/AuthService';
+import CommonMethods from './CommonMethods';
+
 enableStaticRendering(typeof window === 'undefined')
-export class Auth {
+
+export default class Auth implements BaseStore {
     constructor() {
         makeAutoObservable(this, {
             hydrate: action.bound
@@ -32,12 +38,6 @@ export class Auth {
     signOut() {
 
     }
-    hydrate(props: this) {
-        for (const prop in props) {
-            this[prop] = props[prop];
-        }
-    }
-
+    hydrate = CommonMethods.hydrate.bind(this);
 }
 
-export default new Auth();

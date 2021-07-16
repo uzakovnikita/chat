@@ -1,12 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import styled from 'styled-components';
 
-
 import useChatContext from '../../hooks/useChatContext';
 
 import Notification from './Notification';
 
-import { Chat } from '../../store/chat';
+import Chat from '../../store/Chat';
 
 const NotificationContainerStyled = styled.div`
     display: flex;

@@ -1,11 +1,15 @@
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { enableStaticRendering } from 'mobx-react-lite';
 
 import socketService from '../serivces/SocketService';
 
 import { users, room, message } from '../constants/types';
-import { enableStaticRendering } from 'mobx-react-lite';
+import { BaseStore } from '../constants/interfaces';
+import CommonMethods from './CommonMethods';
+
 enableStaticRendering(typeof window === 'undefined')
-export class Chat {
+
+export default class Chat implements BaseStore {
     constructor() {
         makeAutoObservable(this, {
             hydrate: action.bound
@@ -117,12 +121,5 @@ export class Chat {
     set setRooms(rooms: room[]) {
         this.rooms = rooms;
     }
-
-    hydrate(props: this) {
-        for (const prop in props) {
-            this[prop] = props[prop];
-        }
-    }
+    hydrate = CommonMethods.hydrate.bind(this);
 }
-
-export default new Chat();
