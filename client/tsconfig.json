@@ -30,6 +30,7 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "src/setupTest.js"  ]
+    "**/*.tsx",
+    "src/setupTest.js"
+  ]
 }

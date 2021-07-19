@@ -31,18 +31,18 @@ export default class AuthService {
     }
 
     static async login(api: AxiosInstance, email: string, password: string): Promise<AxiosResponse<IAuthResponse>> {
-        return api.post<IAuthResponse>('/auth/login', {email, password})
+        return api.post<IAuthResponse>(URLS.Login, {email, password})
     }
 
     static async registation(api: AxiosInstance, email: string, password: string): Promise<AxiosResponse<IAuthResponse>> {
-        return api.post<IAuthResponse>('/auth/register', {email, password})
+        return api.post<IAuthResponse>(URLS.Signup, {email, password})
     }
 
     static async refresh(api: AxiosInstance): Promise<void> {
-        api.get('/auth/refresh');
+        api.get(URLS.Refresh);
     }
 
     static async logout(api: AxiosInstance): Promise<void> {
-        return api.get('/auth/logout');
+        return api.get(URLS.Logout);
     }
 }
