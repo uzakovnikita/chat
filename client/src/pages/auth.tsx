@@ -1,5 +1,6 @@
 import { FunctionComponent, useState } from 'react';
-import { GetServerSideProps } from 'next'
+import { GetServerSideProps } from 'next';
+import Head from 'next/head';
 
 import { api } from '../http';
 
@@ -22,19 +23,26 @@ const AuthPage: FunctionComponent = () => {
     useAuth(authStore.isLogin, '/rooms');
 
     return (
-        <Main>
-        {authStore.isLogin && null}
-        {!authStore.isLogin && 
-                <Flex width='100%' height='100%'>
-                <Button onClick={() => setView((prevState) => !prevState)}>
-                    Switch login/signup
-                </Button>
-                {view && <Login />}
-                {!view && <Signup />}
-            </Flex>
-        }
-        <Error/>
-        </Main>
+        <>
+            <Head>
+                <title>Auth</title>
+            </Head>
+            <Main className="auth">
+                {authStore.isLogin && null}
+                {!authStore.isLogin && (
+                    <Flex width='100%' height='100%'>
+                        <Button
+                            onClick={() => setView((prevState) => !prevState)}
+                        >
+                            Switch login/signup
+                        </Button>
+                        {view && <Login />}
+                        {!view && <Signup />}
+                    </Flex>
+                )}
+                <Error />
+            </Main>
+        </>
     );
 };
 
@@ -50,8 +58,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     isLogin: true,
                     isHydrated: true,
                 },
-            }
-        }
+            },
+        };
     } catch (err) {
         if (err.message.match(/401/gm)) {
             return {
@@ -62,9 +70,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     },
                     initialErrorsLogs: {
                         errors: [],
-                    }
-                }
-            }
+                    },
+                },
+            };
         }
         return {
             props: {
@@ -74,8 +82,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 },
                 initialErrorsLogs: {
                     errors: [JSON.stringify(err)],
-                }
-            }
-        }
+                },
+            },
+        };
     }
-}
+};

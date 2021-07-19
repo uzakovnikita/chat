@@ -48,7 +48,7 @@ const Text = styled.span`
 const GoHome = () => {
     return (
         <Link href='/rooms' passHref>
-            <LinkContainer href='/rooms'>
+            <LinkContainer href='/rooms' data-test="GoHome">
                 <Text>Home</Text>
             </LinkContainer>
         </Link>

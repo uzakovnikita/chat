@@ -50,7 +50,7 @@ const PrivateRoomPage: FunctionComponent = () => {
             <Head>
                 <title>Private room</title>
             </Head>
-            <Main>
+            <Main className="private-room">
                 <PrivateRoom />
             </Main>
             <NotificationContainer />

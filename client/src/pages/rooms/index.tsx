@@ -40,7 +40,7 @@ const RoomsPage: FunctionComponent = () => {
                     <Head>
                         <title>rooms</title>
                     </Head>
-                    <Main>{authStore.isLogin && <Rooms />}</Main>
+                    <Main className="rooms">{authStore.isLogin && <Rooms />}</Main>
                     <NotificationContainer />
                 </>
             )}

@@ -27,7 +27,7 @@ const Error: FunctionComponent = () => {
     if (typeof window === 'undefined') {
         return null;
     }
-    console.log(errorsList.errors[0])
+
     return ReactDOM.createPortal(<ErrorContainer>
         {errorsList.errors.map(err => {
             return <ErrorNotification message={err.message} onClick={onClick}/>;
