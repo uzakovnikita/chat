@@ -30,7 +30,7 @@ const AuthPage: FunctionComponent = () => {
             <Main data-test="authPage">
                 {authStore.isLogin && null}
                 {!authStore.isLogin && (
-                    <Flex width='100%' height='100%'>
+                    <Flex width='100%' height='100%' data-test="authPageContent">
                         <Button
                             onClick={() => setView((prevState) => !prevState)}
                         >
