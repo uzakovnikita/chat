@@ -27,7 +27,7 @@ const AuthPage: FunctionComponent = () => {
             <Head>
                 <title>Auth</title>
             </Head>
-            <Main className="auth">
+            <Main data-test="authPage">
                 {authStore.isLogin && null}
                 {!authStore.isLogin && (
                     <Flex width='100%' height='100%'>

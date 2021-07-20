@@ -26,10 +26,6 @@ export default class AuthService {
         return api.get(URLS.IsLogin, config);
     }
 
-    static async isLoginOnClient(api: AxiosInstance): Promise<AxiosResponse<IIsLoginResponse>> {
-        return api.get(URLS.IsLogin);
-    }
-
     static async login(api: AxiosInstance, email: string, password: string): Promise<AxiosResponse<IAuthResponse>> {
         return api.post<IAuthResponse>(URLS.Login, {email, password})
     }
@@ -39,7 +35,7 @@ export default class AuthService {
     }
 
     static async refresh(api: AxiosInstance): Promise<void> {
-        api.get(URLS.Refresh);
+        return api.get(URLS.Refresh);
     }
 
     static async logout(api: AxiosInstance): Promise<void> {

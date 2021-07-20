@@ -2,7 +2,6 @@ const { validationResult } = require('express-validator');
 
 const ApiError = require('../exceptions/api-error');
 const userService = require('../service/user-service');
-const tokenService = require('../service/token-service');
 
 module.exports.register = async function (req, res, next) {
     const { email, password } = req.body;
@@ -13,11 +12,10 @@ module.exports.register = async function (req, res, next) {
             return next(ApiError.BadRequest('Validate error', errors.array()));
         }
         const userData = await userService.register(email, password);
-        res.cookie('refreshToken', userData.refreshToken, {
+        return res.status(200).cookie('refreshToken', userData.refreshToken, {
             maxAge: 30 * 24 * 60 * 60 * 1000,
             httpOnly: true,
-        });
-        return res.status(200).json(userData);
+        }).status(200).json({message: 'success', user: userData});
     } catch (err) {
         next(err);
     }
@@ -39,8 +37,6 @@ module.exports.login = async function (req, res, next) {
 
 module.exports.logout = async function (req, res, next) {
     try {
-        const { refreshToken } = req.cookies;
-        const token = await userService.logout(refreshToken);
         res.clearCookie('refreshToken');
         res.status(200).json({message: 'Logout success'});
     } catch (err) {
