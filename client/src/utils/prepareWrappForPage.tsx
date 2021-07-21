@@ -8,7 +8,7 @@ import Chat from '../store/Chat';
 import ErrorsLogs from '../store/ErrorsLogs';
 import { Component, FunctionComponent } from 'react';
 
-type args = Partial<{
+type store = Partial<{
     authStore: Auth;
     chatStore: Chat;
     errorsLogsStore: ErrorsLogs;
@@ -17,7 +17,7 @@ type args = Partial<{
 
 const prepareWrappForPage: (
     Page: FunctionComponent,
-    store: args,
+    store: store,
 ) => ReactWrapper<any, Readonly<{}>, Component<{}, {}, any>> | undefined = (
     Page,
     { authStore, chatStore, errorsLogsStore },
