@@ -18,5 +18,5 @@ export interface IIsLoginResponse {
 
 export interface BaseStore {
     hydrate<T>(props: T): void,
-    errors?: Error[] | string[],
+    errors?:  string[],
 }

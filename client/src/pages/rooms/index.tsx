@@ -6,14 +6,14 @@ import Head from 'next/head';
 
 import { startInterceptor, api } from '../../http/index';
 
-import RoomsService from '../../serivces/RoomsService';
-import MessagesService from '../../serivces/MessagesService';
+import RoomsService from '../../services/RoomsService';
+import MessagesService from '../../services/MessagesService';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';
 import useAuthContext from '../../hooks/useAuthContext';
 
-import AuthService from '../../serivces/AuthService';
+import AuthService from '../../services/AuthService';
 
 import Rooms from '../../components/containers/Rooms';
 import NotificationContainer from '../../components/NotificationContainer';

@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { GetServerSideProps } from 'next'
 
 import useAuth from '../hooks/useAuth';
-import AuthService from '../serivces/AuthService';
+import AuthService from '../services/AuthService';
 import { api } from '../http';
 
 const IndexPage: FunctionComponent<{isLogin: boolean}> = (props) => {

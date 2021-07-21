@@ -4,7 +4,7 @@ import Head from 'next/head';
 
 import { api } from '../http';
 
-import AuthService from '../serivces/AuthService';
+import AuthService from '../services/AuthService';
 
 import useAuth from '../hooks/useAuth';
 
@@ -33,11 +33,12 @@ const AuthPage: FunctionComponent = () => {
                     <Flex width='100%' height='100%' data-test="authPageContent">
                         <Button
                             onClick={() => setView((prevState) => !prevState)}
+                            data-test="toggleButton"
                         >
                             Switch login/signup
                         </Button>
-                        {view && <Login />}
-                        {!view && <Signup />}
+                        {view && <Login data-test="loginComponent"/>}
+                        {!view && <Signup data-test="signupComponent"/>}
                     </Flex>
                 )}
                 <Error />
@@ -81,7 +82,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     isHydrated: true,
                 },
                 initialErrorsLogs: {
-                    errors: [JSON.stringify(err)],
+                    errors: [err.message],
                 },
             },
         };

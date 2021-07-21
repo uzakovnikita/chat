@@ -7,9 +7,9 @@ import Head from 'next/head';
 
 import { api, startInterceptor } from '../../http/index';
 
-import AuthService from '../../serivces/AuthService';
-import MessagesService from '../../serivces/MessagesService';
-import RoomsService from '../../serivces/RoomsService';
+import AuthService from '../../services/AuthService';
+import MessagesService from '../../services/MessagesService';
+import RoomsService from '../../services/RoomsService';
 
 import useAuth from '../../hooks/useAuth';
 import useChatContext from '../../hooks/useChatContext';

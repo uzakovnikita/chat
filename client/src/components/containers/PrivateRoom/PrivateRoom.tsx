@@ -12,7 +12,7 @@ import { lightFormat } from 'date-fns';
 
 import { api, startInterceptor } from '../../../http';
 
-import MessagesService from '../../../serivces/MessagesService';
+import MessagesService from '../../../services/MessagesService';
 
 import dateToText from '../../../utils/dateToText';
 import detectTypeOfEvent from '../../../utils/detectTypeOfEvent';

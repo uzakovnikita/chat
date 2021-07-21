@@ -6,7 +6,7 @@ import CommonMethods from "./CommonMethods";
 enableStaticRendering(typeof window === 'undefined');
 
 export default class ErrorsLogs implements BaseStore {
-    errors: Error[] = [];
+    errors: string[] = [];
     constructor() {
         makeAutoObservable(this, {
             hydrate: action.bound

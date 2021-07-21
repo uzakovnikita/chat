@@ -1,7 +1,7 @@
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { enableStaticRendering } from 'mobx-react-lite';
 
-import socketService from '../serivces/SocketService';
+import socketService from '../services/SocketService';
 
 import { users, room, message } from '../constants/types';
 import { BaseStore } from '../constants/interfaces';

@@ -4,7 +4,7 @@ import { BaseStore } from '../constants/interfaces';
 
 import { api } from '../http';
 
-import AuthService from '../serivces/AuthService';
+import AuthService from '../services/AuthService';
 import CommonMethods from './CommonMethods';
 
 enableStaticRendering(typeof window === 'undefined')

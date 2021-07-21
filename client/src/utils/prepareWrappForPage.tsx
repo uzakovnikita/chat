@@ -14,6 +14,7 @@ type args = Partial<{
     errorsLogsStore: ErrorsLogs;
 }>;
 
+
 const prepareWrappForPage: (
     Page: FunctionComponent,
     store: args,

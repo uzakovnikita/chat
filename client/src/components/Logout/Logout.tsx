@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import AuthService from "../../serivces/AuthService";
+import AuthService from "../../services/AuthService";
 import { useRouter } from "next/router";
 import { api } from "../../http";
 
