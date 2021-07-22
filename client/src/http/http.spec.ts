@@ -5,6 +5,9 @@ import { api, startInterceptor } from './index';
 jest.mock('axios');
 
 describe('http configure', () => {
+    beforeEach(() => {
+        jest.resetAllMocks()
+    })
     it('should use credentials and base api url', () => {
         api();
         expect((axios.create as jest.Mock).mock.calls).toEqual([

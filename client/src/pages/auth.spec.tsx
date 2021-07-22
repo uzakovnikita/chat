@@ -89,7 +89,9 @@ describe('getServerSideProp from authPage', () => {
     beforeAll(() => {
         jest.mock('../services/AuthService');
     });
-
+    beforeEach(() => {
+        jest.resetAllMocks()
+    })
     it('Should return expected props when the user is logged in', async () => {
         const mockIsLogin = jest.fn();
         AuthService.isLogin = mockIsLogin;

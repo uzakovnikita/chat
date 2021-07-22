@@ -111,7 +111,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     isHydrated: true,
                     accessToken: null
                 },
-                initialErrorsLogs: JSON.stringify(err),
+                initialErrorsLogs: [err.message],
             },
         };
     }

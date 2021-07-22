@@ -35,6 +35,10 @@ describe('AuthService tests', () => {
             }
         }
     };
+
+    beforeEach(() => {
+        jest.resetAllMocks()
+    })
     
     it('isLogin should GET to isLogin with refreshToken', () => {   
         AuthService.isLogin(axios, context);
