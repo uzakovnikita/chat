@@ -88,4 +88,5 @@ describe('rooms[id] page', () => {
     });
 });
 
+// TODO
 describe('getServerSideProps from rooms[id] page', () => {});
