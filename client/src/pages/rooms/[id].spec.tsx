@@ -7,7 +7,7 @@ import Auth from '../../store/Auth';
 import ErrorsLogs from '../../store/ErrorsLogs';
 import Chat from '../../store/Chat';
 
-import prepareWrappForPage from '../../utils/prepareWrappForPage';
+import wrappAndMountPage from '../../utils/wrappAndMountPage';
 
 // mocked modules
 import { api, startInterceptor } from '../../http';
@@ -74,7 +74,7 @@ describe('rooms[id] page', () => {
     });
 
     it('Should render rooms[id] page', () => {
-        const page = prepareWrappForPage(PrivateRoomPage, {
+        const page = wrappAndMountPage(PrivateRoomPage, {
             chatStore,
             authStore,
             errorsLogsStore,
@@ -90,7 +90,7 @@ describe('rooms[id] page', () => {
         authStore!.accessToken = fakeToken;
         (api as jest.Mock).mockImplementation(() => fakeApi);
 
-        prepareWrappForPage(PrivateRoomPage, {
+        wrappAndMountPage(PrivateRoomPage, {
             chatStore,
             authStore,
             errorsLogsStore,
@@ -106,7 +106,7 @@ describe('rooms[id] page', () => {
     });
     it('Should initialize store when component will mount and user in not login', () => {
         authStore!.isLogin = false;
-        prepareWrappForPage(PrivateRoomPage, {
+        wrappAndMountPage(PrivateRoomPage, {
             chatStore,
             authStore,
             errorsLogsStore
@@ -117,7 +117,7 @@ describe('rooms[id] page', () => {
         
     });
     it('Should call function when component will unmount', () => {
-        const page = prepareWrappForPage(PrivateRoomPage, {
+        const page = wrappAndMountPage(PrivateRoomPage, {
             chatStore,
             authStore,
             errorsLogsStore,

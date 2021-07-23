@@ -1,12 +1,13 @@
-import { mount, ReactWrapper } from 'enzyme';
+import React from 'react';
 import { ThemeProvider } from 'styled-components';
 
 import { ContextAuth, ContextErrorsLogs, ContextChat } from '../store/contexts';
-import { theme } from '../constants/theme';
+
 import Auth from '../store/Auth';
 import Chat from '../store/Chat';
 import ErrorsLogs from '../store/ErrorsLogs';
-import { Component, FunctionComponent } from 'react';
+
+import { theme } from '../constants/theme';
 
 type store = Partial<{
     authStore: Auth;
@@ -14,15 +15,11 @@ type store = Partial<{
     errorsLogsStore: ErrorsLogs;
 }>;
 
-
-const prepareWrappForPage: (
-    Page: FunctionComponent,
-    store: store,
-) => ReactWrapper<any, Readonly<{}>, Component<{}, {}, any>> | undefined = (
-    Page,
-    { authStore, chatStore, errorsLogsStore },
+const prepareWrappForPage = (
+    Page: React.FunctionComponent,
+    { authStore, chatStore, errorsLogsStore }: store,
 ) => {
-    return mount(
+    return (
         <ThemeProvider theme={theme}>
             <ContextAuth.Provider value={authStore}>
                 <ContextChat.Provider value={chatStore}>
@@ -31,7 +28,7 @@ const prepareWrappForPage: (
                     </ContextErrorsLogs.Provider>
                 </ContextChat.Provider>
             </ContextAuth.Provider>
-        </ThemeProvider>,
+        </ThemeProvider>
     );
 };
 

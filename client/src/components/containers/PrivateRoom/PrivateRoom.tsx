@@ -525,7 +525,7 @@ const PrivateRoom: FunctionComponent = () => {
     const CLASS_SMOOTH = 'smooth';
 
     return (
-        <>
+        <div data-testid="PrivateRoom">
             <HeaderContainer>
                 <Title>{chatStore.interlocutorName}</Title>
                 <GoHome></GoHome>
@@ -601,7 +601,7 @@ const PrivateRoom: FunctionComponent = () => {
                     </NewMessagesCounter>
                 </NewMessagesCounterWrapper>
             </FlexContainer>
-        </>
+        </div>
     );
 };
 

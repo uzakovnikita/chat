@@ -10,7 +10,7 @@ import ErrorsLogs from '../store/ErrorsLogs';
 
 import AuthService from '../services/AuthService';
 
-import prepareWrappForPage from '../utils/prepareWrappForPage';
+import wrappAndMountPage from '../utils/wrappAndMountPage';
 
 
 const idPortal = 'error-portal';
@@ -39,7 +39,7 @@ describe('AuthPage', () => {
     });
 
     it('Should render AuthPage', () => {
-        const page = prepareWrappForPage(AuthPage, {
+        const page = wrappAndMountPage(AuthPage, {
             authStore,
             errorsLogsStore,
         });
@@ -49,7 +49,7 @@ describe('AuthPage', () => {
 
     it('Should render empty content when is login', () => {
         authStore!.isLogin = true;
-        const page = prepareWrappForPage(AuthPage, {
+        const page = wrappAndMountPage(AuthPage, {
             authStore,
             errorsLogsStore,
         });
@@ -59,7 +59,7 @@ describe('AuthPage', () => {
 
     it('Should render non-empty content when is not login', () => {
         authStore!.isLogin = false;
-        const page = prepareWrappForPage(AuthPage, {
+        const page = wrappAndMountPage(AuthPage, {
             authStore,
             errorsLogsStore,
         });
@@ -69,7 +69,7 @@ describe('AuthPage', () => {
 
     it('Should toggle state on click', () => {
         authStore!.isLogin = false;
-        const page = prepareWrappForPage(AuthPage, {
+        const page = wrappAndMountPage(AuthPage, {
             authStore,
             errorsLogsStore,
         });
