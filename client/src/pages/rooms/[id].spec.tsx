@@ -1,20 +1,52 @@
 import PrivateRoomPage from './[id]';
+import { getServerSideProps } from './[id]';
+
+import genFakeContext from '../../__fixtures__/genFakeContext';
 
 import Auth from '../../store/Auth';
 import ErrorsLogs from '../../store/ErrorsLogs';
 import Chat from '../../store/Chat';
 
 import prepareWrappForPage from '../../utils/prepareWrappForPage';
-import socketService from '../../services/SocketService';
-import {api, startInterceptor} from '../../http';
 
-jest.mock('../../http');
+// mocked modules
+import { api, startInterceptor } from '../../http';
+import AuthService from '../../services/AuthService';
+import RoomsService from '../../services/RoomsService';
+import MessagesService from '../../services/MessagesService';
+import socketService from '../../services/SocketService';
 
 const privateRoomSelector = 'main[data-test="privateRoomPage"]';
 
 const fakeId = 'fakeId';
 const fakeToken = 'fakeToken';
 const fakeApi = 'fakeApi';
+const fakeEmail = 'fakeEmail';
+const fakeName = 'fakeName';
+const fakeCookie = 'fakeCookie';
+const fakeContext = genFakeContext({fakeCookie, fakeId});
+
+const fakeMessages = ['message1', 'message2', 'message3'];
+
+const fakeUser = {
+    id: fakeId,
+    email: fakeEmail,
+    accessToken: fakeToken,
+};
+const fakeRoom = {
+    roomId: fakeId,
+    interlocutorName: fakeName,
+    interlocutorId: fakeId,
+};
+
+const fakeRooms = [fakeRoom, fakeRoom];
+
+jest.mock('../../hooks/useAuth');
+
+jest.mock('../../http');
+jest.mock('../../services/AuthService');
+jest.mock('../../services/RoomsService');
+jest.mock('../../services/MessagesService');
 
 
 describe('rooms[id] page', () => {
@@ -36,13 +68,10 @@ describe('rooms[id] page', () => {
         listenAllRooms = jest.spyOn(chatStore, 'listenAllRooms');
         connect = jest.spyOn(chatStore, 'connect');
     });
-    afterAll(() => {
-        
-    });
 
     beforeEach(() => {
-        jest.resetAllMocks()
-    })
+        jest.resetAllMocks();
+    });
 
     it('Should render rooms[id] page', () => {
         const page = prepareWrappForPage(PrivateRoomPage, {
@@ -50,7 +79,6 @@ describe('rooms[id] page', () => {
             authStore,
             errorsLogsStore,
         });
-
 
         const wrapper = page?.find(privateRoomSelector);
 
@@ -72,8 +100,21 @@ describe('rooms[id] page', () => {
         expect(connect!.mock.calls[0][0]).toBe(fakeId);
         expect(listenAllRooms!.mock.calls[0][0]).toBe(fakeId);
         expect((startInterceptor as jest.Mock).mock.calls[0]).toEqual([
-            fakeToken, fakeApi
+            fakeToken,
+            fakeApi,
         ]);
+    });
+    it('Should initialize store when component will mount and user in not login', () => {
+        authStore!.isLogin = false;
+        prepareWrappForPage(PrivateRoomPage, {
+            chatStore,
+            authStore,
+            errorsLogsStore
+        });
+        expect(connect!.mock.calls.length).toBe(0);
+        expect(listenAllRooms!.mock.calls.length).toBe(0);
+        expect((startInterceptor as jest.Mock).mock.calls.length).toBe(1);
+        
     });
     it('Should call function when component will unmount', () => {
         const page = prepareWrappForPage(PrivateRoomPage, {
@@ -82,11 +123,70 @@ describe('rooms[id] page', () => {
             errorsLogsStore,
         });
         page?.unmount();
+        
         expect(chatStore?.isFetchedMessage).toBeFalsy();
         expect(chatStore?.messages).toEqual([]);
         expect(chatStore?.idCurrentPrivateRoom).toBeNull();
     });
 });
 
-// TODO
-describe('getServerSideProps from rooms[id] page', () => {});
+describe('getServerSideProps from rooms[id] page', () => {
+    beforeAll(() => {
+        (AuthService.isLogin as jest.Mock) = jest.fn().mockResolvedValue({
+            data: {
+                user: fakeUser,
+            },
+        });
+        
+        (MessagesService.getMessages as jest.Mock) = jest.fn().mockResolvedValue({
+            data: {
+                messages: fakeMessages,
+            },
+        });
+        
+        (RoomsService.getRooms as jest.Mock) = jest.fn().mockResolvedValue({
+            data: {
+                rooms: fakeRooms,
+            },
+        });
+    });
+    it('Should return props when user is login', async () => {
+        const expected = {
+            props: {
+                initialAuthStore: {
+                    isLogin: true,
+                    id: fakeUser.id,
+                    email: fakeUser.email,
+                    isHydrated: true,
+                    accessToken: fakeUser.accessToken,
+                },
+                initialChatStore: {
+                    messages: fakeMessages,
+                    rooms: fakeRooms,
+                    isFetchedMessage: true,
+                    idCurrentPrivateRoom: fakeRoom.roomId,
+                    interlocutorName: fakeRoom.interlocutorName,
+                    interlocutorId: fakeRoom.interlocutorId,
+                    isPrivateRoom: true,
+                    isJoined: true,
+                },
+            },
+        };
+        expect(await getServerSideProps(fakeContext)).toEqual(expected);
+    });
+    it('Should return props with error', async () => {
+        const errorMessage = 'fakeError';
+        const expected = {
+            props: {
+                initialAuthStore: {
+                    isLogin: false,
+                    isHydrated: true,
+                    accessToken: null
+                },
+                initialErrorsLogs: [errorMessage],
+            },
+        }
+        AuthService.isLogin = jest.fn().mockRejectedValue(new Error(errorMessage));
+        expect(await getServerSideProps(fakeContext)).toEqual(expected);
+    });
+});

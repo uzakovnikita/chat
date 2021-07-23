@@ -67,13 +67,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const {
             data: { user },
         } = await AuthService.isLogin(axiosInstance, context);
-
+        
         startInterceptor(user.accessToken, axiosInstance);
 
         const {
             data: { rooms },
         } = await RoomsService.getRooms(axiosInstance);
-
+        
         const { id } = context.query;
 
         const {

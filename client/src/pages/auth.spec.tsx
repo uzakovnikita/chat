@@ -1,6 +1,8 @@
 import AuthPage from './auth';
 import { getServerSideProps } from './auth';
 
+import genFakeContext from '../__fixtures__/genFakeContext';
+
 import useAuth from '../hooks/useAuth';
 
 import Auth from '../store/Auth';
@@ -9,15 +11,14 @@ import ErrorsLogs from '../store/ErrorsLogs';
 import AuthService from '../services/AuthService';
 
 import prepareWrappForPage from '../utils/prepareWrappForPage';
-import { GetServerSidePropsContext } from 'next';
-import { ParsedUrlQuery } from 'querystring';
+
 
 const idPortal = 'error-portal';
 const pageAttr = '[data-test="authPage"]';
 const pageContentAttr = '[data-test="authPageContent"]';
 const loginComponent = 'Login[data-test="loginComponent"]';
 const toggleButton = 'button[data-test="toggleButton"]';
-const fakeContext = {} as GetServerSidePropsContext<ParsedUrlQuery>;
+const fakeContext = genFakeContext({});
 const unauthorizedError = 'request failed, status: 401';
 const serverError = 'request failed, status: 500';
 
