@@ -1,7 +1,7 @@
 import AuthPage from './auth';
 import { getServerSideProps } from './auth';
 
-import genFakeContext from '../__fixtures__/genFakeContext';
+import genFakeContext from '../tests/utils/genFakeContext';
 
 import useAuth from '../hooks/useAuth';
 

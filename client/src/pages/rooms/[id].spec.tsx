@@ -1,7 +1,7 @@
 import PrivateRoomPage from './[id]';
 import { getServerSideProps } from './[id]';
 
-import genFakeContext from '../../__fixtures__/genFakeContext';
+import genFakeContext from '../../tests/utils/genFakeContext';
 
 import Auth from '../../store/Auth';
 import ErrorsLogs from '../../store/ErrorsLogs';

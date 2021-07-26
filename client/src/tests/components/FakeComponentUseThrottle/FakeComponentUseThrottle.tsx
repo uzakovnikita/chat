@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import useThrottle from "../hooks/useThrottle";
+import useThrottle from "../../../hooks/useThrottle";
 
-const FakeComponent = ({cb}: {cb: jest.Mock}) => {
+const FakeComponentUseThrottle = ({cb}: {cb: jest.Mock}) => {
     const f = useThrottle(cb, 2000);
     useEffect(() => {
         const idInterval = setInterval(f, 10);
@@ -14,4 +14,4 @@ const FakeComponent = ({cb}: {cb: jest.Mock}) => {
     return <div></div>
 };
 
-export default FakeComponent;
+export default FakeComponentUseThrottle;

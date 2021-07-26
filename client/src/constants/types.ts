@@ -1,3 +1,6 @@
+import Auth from "../store/Auth";
+import Chat from "../store/Chat";
+
 export type users = { userID: string; name: string }[];
 
 export type StyledProps = {
@@ -24,3 +27,17 @@ export type room = {
     interlocutorName: string;
     interlocutorId: string;
 };
+
+export type FSMArgs = {
+    authStore: Auth,
+    chatStore: Chat,
+    scrollTop: number,
+    containerRef: React.RefObject<HTMLDivElement>,
+    setIsSmoothScroll: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsShowContent: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsShowArrDown: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsShowCounter: React.Dispatch<React.SetStateAction<boolean>>,
+    setCounterOfNewMessages: React.Dispatch<React.SetStateAction<number>>,
+}
+
+export type detectTypeOfEventArgs = [boolean, boolean, boolean, number, number, HTMLDivElement];

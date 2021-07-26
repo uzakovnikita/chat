@@ -8,6 +8,7 @@ import Chat from '../../../store/Chat';
 
 import ErrorsLogs from '../../../store/ErrorsLogs';
 import prepareWrappForPage from '../../../utils/prepareWrappForPage';
+import { ARIA_NAMES } from '../../../constants/enums';
 
 const privateRoomRegExp = /PrivateRoom/;
 
@@ -23,8 +24,13 @@ describe('PrivateRoom test with RTL', () => {
             errorsLogsStore,
         });
         render(page);
-        const privateRoomComponent = screen.getByTestId(privateRoomRegExp);
+        const privateRoomComponent = screen.getByRole('form', {name: ARIA_NAMES.MESSAGE_FORM});
         expect(privateRoomComponent).toBeInTheDocument();
     });
-    
 });
+
+describe('PrivateRoom test with RTL, FSM-hook', () => {
+    it('Should fire event init', () => {
+        
+    });
+})

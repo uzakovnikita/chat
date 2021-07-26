@@ -1,6 +1,6 @@
 import { mount, ReactWrapper } from 'enzyme';
 import { Component } from 'react';
-import FakeComponent from '../__fixtures__/FakeComponent';
+import FakeComponentUseThrottle from '../tests/components/FakeComponentUseThrottle';
 
 const mockCallBack = jest.fn();
 
@@ -9,7 +9,7 @@ describe('useThrottle test', () => {
     let page: undefined | ReactWrapper<any, Readonly<{}>, Component<{}, {}, any>>;
     
     beforeAll(() => {
-        page = mount(<FakeComponent cb={mockCallBack}/>);
+        page = mount(<FakeComponentUseThrottle cb={mockCallBack}/>);
     });
 
     afterAll(() => {
