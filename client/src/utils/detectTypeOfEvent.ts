@@ -9,7 +9,11 @@ const detectTypeOfEvent: (...args: detectTypeOfEventArgs) => string = (
     oldLengthListOfMessages,
     container,
 ) => {
+    console.log(container.scrollTop, 'scrollTop');
+    console.log(container.clientHeight, 'clientHeight');;
+    console.log(container.scrollHeight, 'scrollHeight');
     if (!isHydratedOld && isHydratedNew && isFetchedMessages) {
+        
         return EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT;
     }
     if (isFetchedMessages && lengthListOfMessages !== oldLengthListOfMessages) {

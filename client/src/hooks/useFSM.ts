@@ -28,6 +28,7 @@ const useFSM: (args: FSMArgs) => void = ({
     setIsShowCounter,
     setCounterOfNewMessages,
 }) => {
+
     const stateMachine = useRef(STATES_OF_FSM_IN_PRIVATE_ROOM.UNINITIALIZED);
     const selfGeneratingEvent = useRef<
         keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM | null
@@ -51,7 +52,8 @@ const useFSM: (args: FSMArgs) => void = ({
             );
         selfGeneratingEvent.current = null;
         prevNumberOfMessages.current = chatStore.messages.length;
-
+        console.log('call hook', event)
+        console.log(stateMachine.current)
         switch (event) {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
                 switch (stateMachine.current) {
@@ -72,6 +74,7 @@ const useFSM: (args: FSMArgs) => void = ({
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM: {
+
                 setIsSmoothScroll(true);
                 setIsShowCounter(false);
                 setIsShowArrDown(false);
@@ -326,6 +329,7 @@ const useFSM: (args: FSMArgs) => void = ({
         scrollTop,
         chatStore.idCurrentPrivateRoom,
     ]);
+    
 };
 
 export default useFSM;
