@@ -2,6 +2,8 @@
 /client/.pnp
 /client/.pnp.js
 /client/package-lock.json
+/client/stories
+
 # testing
 /client/coverage
 

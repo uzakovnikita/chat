@@ -43,12 +43,24 @@
     "test:coverage": "react-scripts test --coverage --watchAll",
     "test:detectOpenHandles": "react-scripts test --watch --runInBand --detectOpenHandles",
     "eject": "react-scripts eject",
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev"
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
     ]
   },
   "browserslist": {
@@ -64,6 +76,12 @@
     ]
   },
   "devDependencies": {
+    "@storybook/addon-actions": "^6.3.6",
+    "@storybook/addon-essentials": "^6.3.6",
+    "@storybook/addon-links": "^6.3.6",
+    "@storybook/node-logger": "^6.3.6",
+    "@storybook/preset-create-react-app": "^3.2.0",
+    "@storybook/react": "^6.3.6",
     "@types/enzyme": "^3.10.9",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/nprogress": "^0.2.0",

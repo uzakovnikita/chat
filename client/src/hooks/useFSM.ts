@@ -52,8 +52,7 @@ const useFSM: (args: FSMArgs) => void = ({
             );
         selfGeneratingEvent.current = null;
         prevNumberOfMessages.current = chatStore.messages.length;
-        console.log('call hook', event)
-        console.log(stateMachine.current)
+        console.log(`state: ${stateMachine.current}  event: ${event}`)
         switch (event) {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
                 switch (stateMachine.current) {
@@ -74,18 +73,12 @@ const useFSM: (args: FSMArgs) => void = ({
                 break;
             }
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM: {
-
                 setIsSmoothScroll(true);
                 setIsShowCounter(false);
                 setIsShowArrDown(false);
                 setCounterOfNewMessages(0);
                 switch (stateMachine.current) {
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED: {
-                        stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM;
-                        break;
-                    }
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
                         stateMachine.current =
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM;
                         break;
@@ -126,6 +119,7 @@ const useFSM: (args: FSMArgs) => void = ({
                             chatStore.idCurrentPrivateRoom as string,
                             counterOfMessages.current,
                         ).then(({ data: { messages } }) => {
+                            console.log('length of messages array', messages.length);
                             if (messages.length === 0) {
                                 stateMachine.current =
                                     STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
@@ -166,11 +160,6 @@ const useFSM: (args: FSMArgs) => void = ({
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
                         break;
                     }
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
-                        stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
-                        break;
-                    }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP: {
                         stateMachine.current =
                             STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE;
@@ -194,11 +183,6 @@ const useFSM: (args: FSMArgs) => void = ({
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED: {
                 setIsSmoothScroll(true);
                 switch (stateMachine.current) {
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
-                        stateMachine.current =
-                            STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
-                        break;
-                    }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES: {
                         stateMachine.current =
                             STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE;
@@ -220,18 +204,6 @@ const useFSM: (args: FSMArgs) => void = ({
                             0,
                             containerRef.current!.scrollHeight,
                         );
-                        break;
-                    }
-                    case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_TOP: {
-                        const lastMessage =
-                            chatStore.messages[chatStore.messages.length - 1];
-                        const isFromSelfMsg =
-                            lastMessage.from._id === authStore.id;
-                        if (isFromSelfMsg) {
-                            return;
-                        }
-                        setCounterOfNewMessages((prev) => prev + 1);
-                        setIsShowCounter(true);
                         break;
                     }
                     case STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE: {
