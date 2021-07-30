@@ -12,9 +12,9 @@ import {
 import Auth from '../store/Auth';
 import Chat from '../store/Chat';
 
-import { FSMArgs } from '../constants/types';
+import { FSMArgs, message } from '../constants/types';
 import fakeMessages from '../../__fixtures__/fakeMessages';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MessagesService from '../services/MessagesService';
 
 jest.mock('../utils/detectTypeOfEvent');
@@ -39,6 +39,7 @@ const mockSetIsShowContent = jest.fn();
 const mockSetIsShowArrDown = jest.fn();
 const mockSetIsShowCounter = jest.fn();
 const mockSetCounterOfNewMessages = jest.fn();
+const mockScrollTo = jest.fn();
 
 const containerTestId = 'container';
 const scrollHeight = 10000000;
@@ -47,6 +48,8 @@ const authStore = new Auth();
 const chatStore = new Chat();
 authStore.isHydrated = true;
 chatStore.isFetchedMessage = true;
+
+const fakeId = 'fakeId';
 
 const fakeProps = {
     authStore,
@@ -69,7 +72,13 @@ const FakeComponentUseFSM = ({
 }: Omit<FSMArgs, 'containerRef' | 'scrollTop'>) => {
     const containerRef = useRef(null);
     const [scrollTop, setScrollTop] = useState(0);
-
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current = ({
+                scrollTo: mockScrollTo,
+            } as unknown) as null;
+        }
+    }, []);
     useFSM({
         authStore,
         chatStore,
@@ -98,53 +107,59 @@ const FakeComponentUseFSM = ({
     );
 };
 
-const init = () => {
-    // state will be initialized
-    (detectTypeOfEvent as jest.Mock).mockReturnValueOnce(
-        EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT,
-    );
+const mockEvent = (event: keyof typeof EVENTS_OF_FSM_IN_PRIVATE_ROOM) => {
+    (detectTypeOfEvent as jest.Mock).mockReturnValueOnce(event);
+};
+
+const mockFetchMessages = (messages: message[]) => {
+    MessagesService.getMessages = jest
+        .fn()
+        .mockReturnValue(
+            new Promise((resolve) => resolve({ data: { messages } })),
+        );
+};
+
+const makeEvent = () =>
+    fireEvent.scroll(screen.getByTestId(containerTestId), {
+        target: {
+            scrollTop: scrollHeight + getNewProps(),
+        },
+    });
+
+const initAndRender = () => {
+    mockEvent(EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT);
     render(<FakeComponentUseFSM {...fakeProps} />);
 };
 
-const toBottom = () => {
-    (detectTypeOfEvent as jest.Mock).mockReturnValueOnce(
-        EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM,
-    );
-    fireEvent.scroll(screen.getByTestId(containerTestId), {
-        target: {
-            scrollTop: scrollHeight + getNewProps(),
-        },
-    });
+const scrollToBottom = () => {
+    mockEvent(EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_BOTTOM);
+    makeEvent();
 };
 
-const toIntermediate = () => {
-    (detectTypeOfEvent as jest.Mock).mockReturnValueOnce(
-        EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_INTERMEDIATE,
-    );
-    fireEvent.scroll(screen.getByTestId(containerTestId), {
-        target: {
-            scrollTop: scrollHeight + getNewProps(),
-        },
-    });
+const scrollToIntermediate = () => {
+    mockEvent(EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_INTERMEDIATE);
+    makeEvent();
 };
 
-const toTop = () => {
-    (detectTypeOfEvent as jest.Mock).mockReturnValueOnce(
-        EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_TOP,
-    );
-    fireEvent.scroll(screen.getByTestId(containerTestId), {
-        target: {
-            scrollTop: scrollHeight + getNewProps(),
-        },
-    });
+const scrollToTop = () => {
+    mockEvent(EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_TO_TOP);
+    makeEvent();
 };
+
+const recieveNewMessage = () => {
+    mockEvent(EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGE_RECIEVED);
+    makeEvent();
+};
+
+
 
 describe('Tests for useFSM hook', () => {
     afterEach(() => {
         jest.clearAllMocks();
+        chatStore.messages = [];
     });
     it('Should call side-effect when component will be mounted', () => {
-        init();
+        initAndRender();
 
         expect(mockSetIsSmoothScroll).toBeCalledWith(true);
         expect(mockSetIsShowContent).toBeCalledWith(true);
@@ -153,9 +168,9 @@ describe('Tests for useFSM hook', () => {
         expect(mockSetCounterOfNewMessages).not.toBeCalled();
     });
     it('Should call sife-effect when component will be scrolled to bottom', () => {
-        init();
+        initAndRender();
         jest.clearAllMocks();
-        toBottom();
+        scrollToBottom();
 
         expect(mockSetIsSmoothScroll).toBeCalledWith(true);
         expect(mockSetIsShowContent).not.toBeCalled();
@@ -168,13 +183,13 @@ describe('Tests for useFSM hook', () => {
             chatStore.messages = [];
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES}`, () => {
-            init();
-            toBottom();
-            toIntermediate();
-            toTop();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
             jest.clearAllMocks();
 
-            toTop();
+            scrollToTop();
 
             expect(mockSetIsSmoothScroll).not.toBeCalled();
             expect(mockSetIsShowContent).not.toBeCalled();
@@ -183,12 +198,12 @@ describe('Tests for useFSM hook', () => {
             expect(mockSetCounterOfNewMessages).not.toBeCalled();
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE}`, async () => {
-            init();
-            toBottom();
-            toIntermediate();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
             jest.clearAllMocks();
 
-            toTop();
+            scrollToTop();
             await waitFor(() =>
                 expect(chatStore.messages[0]).toEqual(
                     fakeMessages[fakeMessages.length - 1],
@@ -203,23 +218,17 @@ describe('Tests for useFSM hook', () => {
             expect(mockSetCounterOfNewMessages).not.toBeCalled();
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE}`, async () => {
-            MessagesService.getMessages = jest
-                .fn()
-                .mockReturnValue(
-                    new Promise((resolve) =>
-                        resolve({ data: { messages: [] } }),
-                    ),
-                );
+            mockFetchMessages([]);
 
-            init();
-            toBottom();
-            toIntermediate();
-            toTop();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
             await waitFor(() => expect(chatStore.messages.length).toBe(0));
-            toIntermediate();
+            scrollToIntermediate();
             jest.clearAllMocks();
 
-            toTop();
+            scrollToTop();
 
             expect(mockSetIsSmoothScroll).not.toBeCalled();
             expect(mockSetIsShowContent).not.toBeCalled();
@@ -229,9 +238,6 @@ describe('Tests for useFSM hook', () => {
         });
     });
     describe(`Tests calls side-effects when event is ${EVENTS_OF_FSM_IN_PRIVATE_ROOM.SCROLLING_INTERMEDIATE}`, () => {
-        afterEach(() => {
-            chatStore.messages = [];
-        });
         afterAll(() => {
             MessagesService.getMessages = jest
                 .fn()
@@ -242,11 +248,11 @@ describe('Tests for useFSM hook', () => {
                 );
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM}`, () => {
-            init();
-            toBottom();
+            initAndRender();
+            scrollToBottom();
             jest.clearAllMocks();
 
-            toIntermediate();
+            scrollToIntermediate();
 
             expect(mockSetIsSmoothScroll).not.toBeCalled();
             expect(mockSetIsShowContent).not.toBeCalled();
@@ -255,21 +261,15 @@ describe('Tests for useFSM hook', () => {
             expect(mockSetCounterOfNewMessages).not.toBeCalled();
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP}`, () => {
-            MessagesService.getMessages = jest
-                .fn()
-                .mockReturnValue(
-                    new Promise((resolve) =>
-                        resolve({ data: { messages: [] } }),
-                    ),
-                );
+            mockFetchMessages([]);
 
-            init();
-            toBottom();
-            toIntermediate();
-            toTop();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
             jest.clearAllMocks();
 
-            toIntermediate();
+            scrollToIntermediate();
 
             expect(mockSetIsSmoothScroll).not.toBeCalled();
             expect(mockSetIsShowContent).not.toBeCalled();
@@ -278,21 +278,15 @@ describe('Tests for useFSM hook', () => {
             expect(mockSetCounterOfNewMessages).not.toBeCalled();
         });
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM}`, () => {
-            MessagesService.getMessages = jest
-                .fn()
-                .mockReturnValue(
-                    new Promise((resolve) =>
-                        resolve({ data: { messages: [] } }),
-                    ),
-                );
+            mockFetchMessages([]);
 
-            init();
-            toBottom();
-            toIntermediate();
-            toTop();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
             jest.clearAllMocks();
 
-            toTop();
+            scrollToTop();
 
             expect(mockSetIsSmoothScroll).not.toBeCalled();
             expect(mockSetIsShowContent).not.toBeCalled();
@@ -301,19 +295,14 @@ describe('Tests for useFSM hook', () => {
             expect(mockSetCounterOfNewMessages).not.toBeCalled();
         });
     });
-    describe(`Test calls side-effect when event is ${EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED}`, () => {
+    describe(`Test calls side-effects when event is ${EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGES_FETCHED}`, () => {
         it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.FETCHING_MESSAGES}`, async () => {
-            MessagesService.getMessages = jest
-                .fn()
-                .mockReturnValue(
-                    new Promise((resolve) =>
-                        resolve({ data: { messages: fakeMessages } }),
-                    ),
-                );
-            init();
-            toBottom();
-            toIntermediate();
-            toTop();
+            mockFetchMessages(fakeMessages);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
             await waitFor(() =>
                 expect(chatStore.messages[0]).toEqual(
                     fakeMessages[fakeMessages.length - 1],
@@ -326,6 +315,238 @@ describe('Tests for useFSM hook', () => {
                     scrollTop: scrollHeight + getNewProps(),
                 },
             });
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+    });
+    describe(`Test calls side-effects when event is ${EVENTS_OF_FSM_IN_PRIVATE_ROOM.NEW_MESSAGE_RECIEVED}`, () => {
+        const setLastMessageFromInterlocutor = () => {
+            authStore.id = fakeId;
+            chatStore.messages = fakeMessages;
+        }
+        
+        const setLastMessageFromSelf = () => {
+            authStore.id = fakeId;
+            const lastMessage = JSON.parse(
+                JSON.stringify(fakeMessages[fakeMessages.length - 1]),
+            );
+            lastMessage.from._id = fakeId;
+            chatStore.messages = [...fakeMessages, lastMessage];
+        }
+
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.INITIALIZED}`, () => {
+            initAndRender();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockScrollTo).toBeCalled();
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE} with message from interlocutor`, () => {
+            setLastMessageFromInterlocutor();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).toBeCalledWith(true);
+            expect(mockSetCounterOfNewMessages).toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_INTERMEDIATE} with message from self`, () => {
+            setLastMessageFromSelf();
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_BOTTOM}`, () => {
+            initAndRender();
+            scrollToBottom();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).toBeCalledWith(false);
+            expect(mockSetIsShowCounter).toBeCalledWith(false);
+            expect(mockSetCounterOfNewMessages).toBeCalledWith(0);
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP} with message from interlocutor`, async () => {
+            setLastMessageFromInterlocutor();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            jest.clearAllMocks();
+            return new Promise((resolve) => resolve('')).then(() => {
+                recieveNewMessage();
+
+                expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+                expect(mockSetIsShowContent).not.toBeCalled();
+                expect(mockSetIsShowArrDown).not.toBeCalled();
+                expect(mockSetIsShowCounter).toBeCalledWith(true);
+                expect(mockSetCounterOfNewMessages).toBeCalled();
+            });
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP} with message from self`, async () => {
+            setLastMessageFromSelf();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToTop();
+            jest.clearAllMocks();
+            await new Promise((resolve) => resolve(''));
+            recieveNewMessage();
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM} with message from interlocutor`, async () => {
+            setLastMessageFromInterlocutor();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            scrollToBottom();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockScrollTo).toBeCalled();
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).toBeCalledWith(false);
+            expect(mockSetIsShowCounter).toBeCalledWith(false);
+            expect(mockSetCounterOfNewMessages).toHaveBeenCalledWith(0);
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETCHING_HISTORY_SCROLLED_TO_BOTTOM} with message from self`, async () => {
+            setLastMessageFromSelf();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            scrollToBottom();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockScrollTo).not.toBeCalled();
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE} with message from interlocutor`, async () => {
+            setLastMessageFromInterlocutor();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).toBeCalledWith(true);
+            expect(mockSetCounterOfNewMessages).toHaveBeenCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_INRERMEDIATE} with message from self`, async () => {
+            setLastMessageFromSelf();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).not.toBeCalled();
+            expect(mockSetCounterOfNewMessages).not.toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP} with message from interlocutor`, async () => {
+            setLastMessageFromInterlocutor();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            scrollToTop();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
+
+            expect(mockSetIsSmoothScroll).toBeCalledWith(true);
+            expect(mockSetIsShowContent).not.toBeCalled();
+            expect(mockSetIsShowArrDown).not.toBeCalled();
+            expect(mockSetIsShowCounter).toBeCalledWith(true);
+            expect(mockSetCounterOfNewMessages).toBeCalled();
+        });
+        it(`state is ${STATES_OF_FSM_IN_PRIVATE_ROOM.NOT_FETHCING_HISTORY_SCROLLED_TO_TOP} with message from self`, async () => {
+            setLastMessageFromSelf();
+            mockFetchMessages([]);
+
+            initAndRender();
+            scrollToBottom();
+            scrollToIntermediate();
+            scrollToTop();
+            await new Promise((resolve) => resolve(''));
+            scrollToIntermediate();
+            scrollToTop();
+            jest.clearAllMocks();
+
+            recieveNewMessage();
 
             expect(mockSetIsSmoothScroll).toBeCalledWith(true);
             expect(mockSetIsShowContent).not.toBeCalled();
