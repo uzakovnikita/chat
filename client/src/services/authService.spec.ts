@@ -44,6 +44,14 @@ describe('AuthService tests', () => {
         AuthService.isLogin(axios, context);
         expect((axios.get as jest.Mock).mock.calls).toEqual([[URLS.IsLogin, config]])
     });
+    it('isLogin should GET to isLogin with empty refreshToken', () => {
+        const context2 = JSON.parse(JSON.stringify(context));
+        const config2 = JSON.parse(JSON.stringify(config));
+        config2.headers.Authorization = `Refresh `;
+        context2.req.headers.cookie = '';
+        AuthService.isLogin(axios, context2);
+        expect((axios.get as jest.Mock).mock.calls).toEqual([[URLS.IsLogin, config2]])
+    })
     it('isLogin should return boolean value', async () => {
         const result = true;
         (axios.get as jest.Mock).mockResolvedValue(result);

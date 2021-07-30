@@ -52,7 +52,6 @@ const useFSM: (args: FSMArgs) => void = ({
             );
         selfGeneratingEvent.current = null;
         prevNumberOfMessages.current = chatStore.messages.length;
-        console.log(`state: ${stateMachine.current}  event: ${event}`)
         switch (event) {
             case EVENTS_OF_FSM_IN_PRIVATE_ROOM.INIT: {
                 switch (stateMachine.current) {
@@ -119,7 +118,6 @@ const useFSM: (args: FSMArgs) => void = ({
                             chatStore.idCurrentPrivateRoom as string,
                             counterOfMessages.current,
                         ).then(({ data: { messages } }) => {
-                            console.log('length of messages array', messages.length);
                             if (messages.length === 0) {
                                 stateMachine.current =
                                     STATES_OF_FSM_IN_PRIVATE_ROOM.SCROLLED_TO_THE_MAX_TOP;
