@@ -25,7 +25,7 @@ import GoHome from '../../GoHome';
 import Chat from '../../../store/Chat';
 import Auth from '../../../store/Auth';
 import { message } from '../../../constants/types';
-import { ARIA_NAMES } from '../../../constants/enums';
+import { ARIA_LABELS, ROLES } from '../../../constants/enums';
 
 type isShowProps = {
     isShow: boolean;
@@ -75,11 +75,10 @@ const DateOfMessage = styled.span<isShowProps>`
     font-family: ${(props) => props.theme.fonts.primary};
     padding: 4px;
     box-sizing: border-box;
-    opacity: 0.9;
     box-shadow: 0 0 12px ${(props) => props.theme.colors['purple']};
     align-self: center;
     min-height: 30px;
-    opacity: ${(props) => (props.isShow ? 1 : 0)};
+    opacity: ${(props) => (props.isShow ? 0.9 : 0)};
     transition: 0.3s;
 `;
 
@@ -109,7 +108,6 @@ const NewMessagesCounter = styled.button<isShowProps>`
 const DownArrow = styled.div<isShowProps>`
     position: absolute;
     top: 18px;
-    // z-index: -10;
     background-image: url('/images/svg/down.svg');
     background-size: cover;
     background-position: center;
@@ -220,7 +218,6 @@ const PrivateRoom: FunctionComponent = () => {
             setIsShowTooltipOfDate(false);
         }, 2000);
     };
-
     const handleClickScrollDown = () => {
         containerRef.current!.scrollTop = containerRef.current!.scrollHeight;
         setIsShowCounter(false);
@@ -247,14 +244,15 @@ const PrivateRoom: FunctionComponent = () => {
                     ref={containerRef}
                     className={isSmoothScroll ? CLASS_SMOOTH : ''}
                     onScroll={throttledHandleScroll}
+                    role={ROLES.MESSAGES_CONTAINER}
                 >
                     {dates.map((date) => {
                         const messagesOnCurrentDate = messagesByDate[date];
-                        const text = dateToText(date);
+                        const textDate = dateToText(date);
                         return (
                             <DateContainer key={date} data-date={date}>
-                                <DateOfMessage isShow={isShowTooltipOfDate}>
-                                    {text}
+                                <DateOfMessage isShow={isShowTooltipOfDate} role={ROLES.DATE_TOOLTIP}>
+                                    {textDate}
                                 </DateOfMessage>
                                 {messagesOnCurrentDate.map((msg) => {
                                     const isFromSelfMsg =
@@ -274,6 +272,7 @@ const PrivateRoom: FunctionComponent = () => {
                                                     : 'flex-start'
                                             }
                                             key={msg._id}
+                                            role={ROLES.MESSAGE}
                                         >
                                             {msg.messageBody}
                                             <TimeOnMessage>
@@ -288,7 +287,7 @@ const PrivateRoom: FunctionComponent = () => {
                 </MessagesContainer>
                 <SendBox
                     onSubmit={handleSubmit}
-                    aria-label={ARIA_NAMES.MESSAGE_FORM}
+                    aria-label={ARIA_LABELS.MESSAGE_FORM}
                 >
                     <MessageInput
                         padding={'20px'}
@@ -301,12 +300,14 @@ const PrivateRoom: FunctionComponent = () => {
                         type='submit'
                         img={'/images/svg/send.svg'}
                         img-hover={'/images/svg/send-hover.svg'}
+                        aria-label={ARIA_LABELS.SEND_MESSAGE}
                     />
                 </SendBox>
                 <NewMessagesCounterWrapper>
                     <DownArrow
                         isShow={isShowArrDown}
                         onClick={handleClickScrollDown}
+                        role={ROLES.DOWN_ARROW}
                     />
                     <NewMessagesCounter
                         isShow={isShowCounter}
