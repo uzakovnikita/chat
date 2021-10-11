@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 1000;
 
 (async () => {
   try {
-    server.listen(PORT, (err) => {
+    server.listen(PORT, (err: any) => {
       if (err) {
         throw new Error(err);
       }

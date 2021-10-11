@@ -19,6 +19,6 @@ app.use('/api', authMiddleware, roomsRoutes);
 app.use('/api', authMiddleware, messageRoutes);
 app.use('/api', activateRoutes);
 app.use(errorMiddleware);
-const server = http.createServer(app);
+const server: any = http.createServer(app);
 
 module.exports.server = server;
