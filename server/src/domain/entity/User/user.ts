@@ -1,63 +1,56 @@
-import room from "../Room";
-import {
-  IServiceDB,
-  IServiceSubscribe,
-  IServiceMessageSend,
-} from "../../interfacesDI";
-import { IUser } from "./IUser";
-import { userDTO } from "../../../types";
+import Room from "../Room";
+import { typeMessage, typeRoomSnapshot } from "../types";
 
-export default {
-  sendMessage(
-    from: string,
-    to: string,
-    room: string,
-    body: string,
-    serviceDB: IServiceDB,
-    serviceMessageSend: IServiceMessageSend
-  ) {
-    const date = Date.now();
-    serviceDB.saveOne("user", { from, to, room, body, date });
-    serviceMessageSend.send(from, to, room, body);
-    return new Promise<boolean>((r) => r(true));
-  },
-  subscribeOnMessages(subscribeService: IServiceSubscribe, emitters: string[]) {},
-  unsubscribeOnMessages(subscribeService: IServiceSubscribe) {},
-  joinInRoom(userId: string, roomId: string) {
-    room.notUserHasJoin();
-    return new Promise<boolean>((r) => r(true));
-  },
-  leaveRoom(userId: string, roomId: string) {
-    room.noteUserHasLeave();
-  },
-  async signin(
-    serviceDB: IServiceDB,
-    credentials: {
-      password: string;
-      identify: {
-        nameOfLoginField: string;
-        value: string;
-      };
-    }
-  ) {
-    const allExistingUsers = await serviceDB.findAll("user");
-    const IsThisUserAlreadyExist = allExistingUsers.find((el) => el);
-    return new Promise<boolean>((r) => r(true));
-  },
-  async login(
-    password: string,
-    credentials: { nameOfLoginField: string; value: string }
-  ): Promise<userDTO> {
-    const {nameOfLoginField, value} = credentials;
-    return {
-      id: "1",
-      credentials: {
-        nameOfLoginField,
-        value,
-      },
-    };
-  },
+export default class User {
+  private _currentRoom: Room | null = null;
+  private listOfRooms: Room[] = [];
+  private messages: typeMessage[] | null = null;
+
+  private constructor(private _id: string, private email: string) {}
+
+  public static create(id: string, email: string) {
+    const instance = new User(id, email);
+    return instance;
+  }
+
+  login(listOfRoomsDTO: typeRoomSnapshot[]) {
+    this.listOfRooms = listOfRoomsDTO.map((roomDTO) => Room.create(roomDTO));
+  }
+
   logout() {
-    return new Promise<boolean>((r) => r(true));
-  },
-};
+    this.listOfRooms = null;
+  }
+
+  joinInRoom(id: string) {
+    this._currentRoom = this.listOfRooms.find((room) => room.id === id);
+    this.messages = this._currentRoom.history;
+  }
+
+  leaveRoom() {
+    this._currentRoom = null;
+    this.messages = null;
+  }
+
+  sendMessage(message: typeMessage) {
+    this._currentRoom.pushMessage(message);
+  }
+
+  getMessages() {
+    return this.messages;
+  }
+
+  getSnapshot() {
+    return {
+      id: this._id,
+      email: this.email,
+    };
+  }
+
+  get currentRoom() {
+    return this._currentRoom;
+  }
+
+  get id() {
+    return this._id;
+  }
+}
