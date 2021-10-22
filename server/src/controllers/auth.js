@@ -1,3 +1,5 @@
+import userService from '../domain/useCases/UserService';
+
 const { validationResult } = require('express-validator');
 
 const ApiError = require('../exceptions/api-error');
@@ -21,19 +23,19 @@ module.exports.register = async function (req, res, next) {
     }
 };
 
-module.exports.login = async function (req, res, next) {
-    const { email, password } = req.body;
+// module.exports.login = async function (req, res, next) {
+//     const { email, password } = req.body;
 
-    try {
-        const userData = await userService.login(email, password);
-        return res.status(200).cookie('refreshToken', userData.refreshToken, {
-            maxAge: 30 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-        }).json({message: 'success', user: userData});
-    } catch (err) {
-        next(err);
-    }
-};
+//     try {
+//         const userData = await userService.login(email, password);
+//         return res.status(200).cookie('refreshToken', userData.refreshToken, {
+//             maxAge: 30 * 24 * 60 * 60 * 1000,
+//             httpOnly: true,
+//         }).json({message: 'success', user: userData});
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 
 module.exports.logout = async function (req, res, next) {
     try {

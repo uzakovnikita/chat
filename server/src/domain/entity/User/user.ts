@@ -1,34 +1,30 @@
 import Room from "../Room";
-import { typeMessage, typeRoomSnapshot } from "../types";
+import { typeMessage, typeRoomSnapshot, typeUserDTO } from "../types";
 
 export default class User {
   private _currentRoom: Room | null = null;
   private listOfRooms: Room[] = [];
   private messages: typeMessage[] | null = null;
 
-  private constructor(private _id: string, private email: string) {}
+  private constructor(
+    private _id: string,
+    private email: string,
+    private _password?: string
+  ) {}
 
-  public static create(id: string, email: string) {
-    const instance = new User(id, email);
+  public static init(userDTO: typeUserDTO) {
+    const { id, email } = userDTO;
+    return new User(id, email);
+  }
+
+  public static create(userDTO: typeUserDTO & { password: string }) {
+    const { id, email, password } = userDTO;
+    const instance = new User(id, email, password);
     return instance;
   }
 
   login(listOfRoomsDTO: typeRoomSnapshot[]) {
     this.listOfRooms = listOfRoomsDTO.map((roomDTO) => Room.create(roomDTO));
-  }
-
-  logout() {
-    this.listOfRooms = null;
-  }
-
-  joinInRoom(id: string) {
-    this._currentRoom = this.listOfRooms.find((room) => room.id === id);
-    this.messages = this._currentRoom.history;
-  }
-
-  leaveRoom() {
-    this._currentRoom = null;
-    this.messages = null;
   }
 
   sendMessage(message: typeMessage) {
@@ -43,6 +39,7 @@ export default class User {
     return {
       id: this._id,
       email: this.email,
+      password: this._password,
     };
   }
 

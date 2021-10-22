@@ -1,49 +1,65 @@
 import { inject, injectable } from "inversify";
-import { TYPES } from "../../types";
-import Room from "../entity/Room";
-import { typeMessage, typeUserDTO } from "../entity/types";
+
 import User from "../entity/User";
+
 import { IRoomRepository } from "./DI/IRoomRepository";
 import { IUserRepository } from "./DI/IUserRepository";
+import { IEncoder } from "./DI/IEncoder";
+
+import { TYPES } from "../../types";
+import { typeMessage, typeUserDTO } from "../entity/types";
+import Room from "../entity/Room";
 
 @injectable()
-export default class UserService {
-  @inject(TYPES.UserRepository) private repository: IUserRepository;
+class UserService {
+  @inject(TYPES.UserRepository) private userRepository: IUserRepository;
   @inject(TYPES.RoomRepository) private roomRepository: IRoomRepository;
-  private currentUser: User | null;
+  @inject(TYPES.Encoder) private encoder: IEncoder;
 
-  public signin(email: string, password: string) {
-    const existingUsers = this.repository.findAll();
+  public async signin(email: string, password: string) {
+    const existingUsers = this.userRepository.findAll();
     if (existingUsers.find((existingUser) => existingUser.email === email)) {
-      return false;
+      throw new Error("User already exist");
     }
-    const id = Date.now() * Math.random() + "";
-    const newUser = User.create(id, email);
-    this.repository.saveOne(newUser.getSnapshot());
+    const userId = (Date.now() * Math.random() * 1000 + "").slice(8);
+    const newUser = User.create({
+      id: userId,
+      email,
+      password: this.encoder.encoder(password),
+    });
+    await existingUsers.forEach(async (existingUser) => {
+      const roomId = (Date.now() * Math.random() * 1000 + "").slice(8);
+      const users = [existingUser.id, userId];
+      const history: typeMessage[] = [];
+      const newRoom = Room.create({ id: roomId, users, history });
+      try {
+        await this.roomRepository.saveOne(newRoom.getSnapshot());
+      } catch (err) {
+        throw err;
+      }
+    });
+    try {
+      return this.userRepository.saveOne(newUser.getSnapshot());
+    } catch (err) {
+      throw err;
+    }
   }
 
-  public login(userDTO: typeUserDTO) {
-    const { id, email } = userDTO;
-    const user = User.create(id, email);
-    const listOfRooms = this.roomRepository.findAll();
-    user.login(listOfRooms);
-    this.currentUser = user;
-  }
-
-  public joinInRoom(id: string) {
-    this.currentUser.joinInRoom(id);
-    const roomSnapshot = this.roomRepository.findOne(id);
-    const room = Room.create(roomSnapshot);
-    const interlocutor = this.repository.findById(
-      room.members.find((id) => id !== this.currentUser.id)
-    );
-    return { history: room.history, interlocutor };
-  }
-
-  public sendMessage(message: Omit<typeMessage, "id">) {
-    const id = Date.now() * Math.random() + "";
-    this.currentUser.sendMessage({ ...message, id });
-    const room = this.currentUser.currentRoom;
-    this.roomRepository.update(room.getSnapshot());
+  public async login(email: string, password: string) {
+    try {
+      const userSnapshot = this.userRepository.findOne(email);
+      const isEqualPassword = await this.encoder.compare(
+        password,
+        userSnapshot.password
+      );
+      if (isEqualPassword) {
+        return userSnapshot;
+      }
+      throw new Error('Password is not valid');
+    } catch (err) {
+      throw err;
+    }
   }
 }
+
+export default new UserService();

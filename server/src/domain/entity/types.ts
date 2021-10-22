@@ -4,6 +4,7 @@ export type typeMessage = {
   to: string;
   body: string;
   date: string;
+  roomId: string;
 };
 
 export type typeRoomSnapshot = {
