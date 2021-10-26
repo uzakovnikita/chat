@@ -1,15 +1,13 @@
 import { typeMessage, typeRoomSnapshot } from "../types";
 
 export default class Room {
-
-  private constructor(private _id: string, private _users: string[], private _history: typeMessage[]) {}
+  private constructor(
+    private _users: string[],
+    private _history: typeMessage[]
+  ) {}
 
   public static create(roomSnapshot: typeRoomSnapshot) {
-    return new Room(roomSnapshot.id, roomSnapshot.users, roomSnapshot.history);
-  }
-
-  get id() {
-    return this._id;
+    return new Room(roomSnapshot.users, roomSnapshot.history);
   }
 
   get members() {
@@ -26,7 +24,6 @@ export default class Room {
 
   getSnapshot(): typeRoomSnapshot {
     return {
-      id: this._id,
       users: this._users,
       history: this._history,
     };

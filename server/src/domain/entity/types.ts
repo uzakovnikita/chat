@@ -1,5 +1,4 @@
 export type typeMessage = {
-  id: string;
   from: string;
   to: string;
   body: string;
@@ -8,12 +7,15 @@ export type typeMessage = {
 };
 
 export type typeRoomSnapshot = {
-  id: string;
   users: string[];
   history: typeMessage[];
 };
 
 export type typeUserDTO = {
-  id: string,
   email: string,
-}
+};
+
+export type typeUserSnapshot = {
+  email: string,
+  password: string
+};

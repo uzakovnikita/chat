@@ -22,8 +22,7 @@ export default class RoomService {
     try {
       const roomSnapshot = await this.roomRepository.findById(message.roomId);
       const room = Room.create(roomSnapshot);
-      const messageId = (Date.now() * Math.random() * 1000 + "").slice(8);
-      room.pushMessage({ ...message, id: messageId });
+      room.pushMessage({ ...message });
       return this.roomRepository.updateOne(room.getSnapshot());
     } catch (err) {
       throw err;
