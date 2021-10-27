@@ -7,7 +7,8 @@ export default class Room {
   ) {}
 
   public static create(roomSnapshot: typeRoomSnapshot) {
-    return new Room(roomSnapshot.users, roomSnapshot.history);
+    const { users, history } = roomSnapshot;
+    return new Room(users, history);
   }
 
   get members() {

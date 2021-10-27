@@ -2,8 +2,6 @@ import { inject, injectable } from "inversify";
 
 import User from "../entity/User";
 
-import { genId } from "../../utils/genId";
-
 import { IRoomRepository } from "./DI/IRoomRepository";
 import { IUserRepository } from "./DI/IUserRepository";
 import { IEncoder } from "./DI/IEncoder";
@@ -13,7 +11,7 @@ import { typeMessage } from "../entity/types";
 import Room from "../entity/Room";
 
 @injectable()
-class UserService {
+export default class UserService {
   @inject(TYPES.UserRepository) private userRepository: IUserRepository;
   @inject(TYPES.RoomRepository) private roomRepository: IRoomRepository;
   @inject(TYPES.Encoder) private encoder: IEncoder;
@@ -66,5 +64,3 @@ class UserService {
     }
   }
 }
-
-export default new UserService();

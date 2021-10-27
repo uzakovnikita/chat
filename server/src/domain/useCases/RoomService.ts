@@ -8,9 +8,9 @@ import { IRoomRepository } from "./DI/IRoomRepository";
 export default class RoomService {
   @inject(TYPES.RoomRepository) private roomRepository: IRoomRepository;
 
-  public async getHistory(roomId: string) {
+  public async getHistory(roomId: string, startHistory: number, offsetHistory: number) {
     try {
-      const roomSnapshot = await this.roomRepository.findById(roomId);
+      const roomSnapshot = await this.roomRepository.findRoomById(roomId, startHistory, offsetHistory);
       const room = Room.create(roomSnapshot);
       return room.history;
     } catch (err) {
@@ -18,12 +18,17 @@ export default class RoomService {
     }
   }
 
-  public async sendMessage(message: Omit<typeMessage, "id">) {
+  public async sendMessage(message: typeMessage) {
     try {
-      const roomSnapshot = await this.roomRepository.findById(message.roomId);
+      const roomSnapshot = await this.roomRepository.findRoomById(
+        message.roomId
+      );
+      const { id } = roomSnapshot;
+
       const room = Room.create(roomSnapshot);
       room.pushMessage({ ...message });
-      return this.roomRepository.updateOne(room.getSnapshot());
+
+      return this.roomRepository.addNewMessage({ id, ...room.getSnapshot() });
     } catch (err) {
       throw err;
     }
@@ -31,10 +36,8 @@ export default class RoomService {
 
   public async getRooms(userId: string): Promise<typeRoomSnapshot[]> {
     try {
-      const roomSnapshots = await this.roomRepository.findWhere((room) =>
-        room.users.includes(userId)
-      );
-      return roomSnapshots as typeRoomSnapshot[];
+      const roomSnapshots = await this.roomRepository.findRoomsByUser(userId);
+      return roomSnapshots;
     } catch (err) {
       throw err;
     }

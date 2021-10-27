@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import {registry} from '../controllers/registry';
+import {registry} from '../httpControllers/registry';
 
 const router = Router();
 
