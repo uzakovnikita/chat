@@ -33,4 +33,16 @@ export default class RoomRepository implements IRoomRepository {
     );
     return result;
   }
+  async addNewMessage(room: typeRoomSnapshot & { id: string }) {
+    const msg = room.history[room.history.length - 1];
+    const savedMsg = await new Message({ ...msg }).save();
+    await Room.updateOne(
+      { _id: room.id },
+      { $push: { messages: savedMsg._id } }
+    );
+    return {
+      id: savedMsg._id,
+      ...msg,
+    };
+  }
 }
