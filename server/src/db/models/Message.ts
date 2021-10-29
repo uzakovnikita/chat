@@ -1,10 +1,7 @@
 import mongoose, { Schema } from "mongoose";
+import { typeMessage } from "../../domain/entity/types";
 
 const messageSchema = new Schema({
-  messageBody: {
-    type: String,
-    required: true,
-  },
   from: {
     email: {
       ref: "users",
@@ -29,10 +26,18 @@ const messageSchema = new Schema({
       required: true,
     },
   },
+  body: {
+    type: String,
+    required: true,
+  },
+  date: {
+    type: String,
+    required: true,
+  },
   room: {
     ref: "rooms",
     type: Schema.Types.ObjectId,
   },
 });
 
-export default mongoose.model("messages", messageSchema);
+export default mongoose.model<typeMessage>("messages", messageSchema);

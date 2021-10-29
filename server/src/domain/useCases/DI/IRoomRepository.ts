@@ -2,7 +2,7 @@ import { typeMessage, typeRoomSnapshot } from "../../../domain/entity/types";
 
 export interface IRoomRepository {
   createRoom(
-    room: typeRoomSnapshot
+    room: Omit<typeRoomSnapshot, 'history'>
   ): Promise<typeRoomSnapshot & { id: string }>;
   findRoomById(
     roomId: string,

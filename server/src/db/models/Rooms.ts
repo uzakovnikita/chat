@@ -1,4 +1,4 @@
-import { Schema, model, models } from "mongoose";
+import { Schema, model, models, Model } from "mongoose";
 
 const roomsSchema = new Schema({
   members: [
@@ -15,7 +15,10 @@ const roomsSchema = new Schema({
   ],
 });
 
-let Room;
+let Room: Model<{
+  members: string[];
+  messages: string[];
+}, {}, {}>;
 
 if (models.rooms) {
   Room = model("rooms");
