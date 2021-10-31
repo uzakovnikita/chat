@@ -12,8 +12,8 @@ router.post(
     body('password').isLength({ min: 3, max: 32 }),
     controllers.register,
 );
-router.get('/logout', controllers.logout);
-router.get('/refresh', controllers.refresh);
-router.get('/islogin', controllers.isLogin);
+// router.get('/logout', controllers.logout);
+// router.get('/refresh', controllers.refresh);
+// router.get('/islogin', controllers.isLogin);
 
 export default router;

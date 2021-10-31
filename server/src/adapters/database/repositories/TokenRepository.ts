@@ -1,3 +1,3 @@
-import { ITokenRepository } from "../../../services/DI/ITokenRepository";
+import { ITokenRepository } from "../../../authenticate/DI/ITokenRepository";
 
 export default class TokenRepository implements ITokenRepository {}

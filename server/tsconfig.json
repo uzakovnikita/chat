@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "experimentalDecorators": true,
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es6",
@@ -14,5 +13,4 @@
       "*": ["node_modules/*"]
     }
   },
-  "include": ["src/**/*"]
 }

@@ -1,4 +1,4 @@
-import { IJWTService } from "../../services/DI/IJWTService";
+import { IJWTService } from "../../authenticate/DI/IJWTService";
 
 export default class JWTService implements IJWTService {
   public generateTokens(payload: Record<string, unknown>): {
