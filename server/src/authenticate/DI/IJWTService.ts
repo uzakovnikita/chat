@@ -5,4 +5,5 @@ export interface IJWTService {
   };
   validateRefreshToken(refreshToken: string): Promise<boolean>;
   validateAccessToken(accessToken: string): Promise<boolean>;
+  getUserDataFromToken(token: string): { id: string; email: string } | null;
 }

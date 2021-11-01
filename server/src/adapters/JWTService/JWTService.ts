@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken";
+
 import { IJWTService } from "../../authenticate/DI/IJWTService";
 
 export default class JWTService implements IJWTService {
@@ -12,5 +14,12 @@ export default class JWTService implements IJWTService {
   }
   validateAccessToken(accessToken: string): Promise<boolean> {
     return new Promise((res) => res(true));
+  }
+  getUserDataFromToken(token: string) {
+    const result = jwt.decode(token);
+    if (typeof result === "object" && "email" in result && "id" in result) {
+      return result as { email: string; id: string };
+    }
+    return null;
   }
 }
