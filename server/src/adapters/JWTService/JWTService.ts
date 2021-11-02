@@ -1,24 +1,34 @@
 import jwt from "jsonwebtoken";
 
+import { keys } from "../../config/keys";
+
 import { IJWTService } from "../../authenticate/DI/IJWTService";
 
 export default class JWTService implements IJWTService {
-  public generateTokens(payload: Record<string, unknown>): {
+  generateTokens(payload: Record<string, unknown>): {
     accessToken: string;
     refreshToken: string;
   } {
-    return { accessToken: "", refreshToken: "" };
+    const accessToken = jwt.sign(payload, keys.JWT_ACCESS_SECRET, {
+      expiresIn: "30m",
+    });
+    const refreshToken = jwt.sign(payload, keys.JWT_REFRESH_SECRET, {
+      expiresIn: "30d",
+    });
+    return { accessToken, refreshToken };
   }
-  validateRefreshToken(refreshToken: string): Promise<boolean> {
-    return new Promise((res) => res(true));
+  validateRefreshToken(refreshToken: string) {
+    const verify = jwt.verify(refreshToken, keys.JWT_REFRESH_SECRET);
+    return Boolean(verify);
   }
-  validateAccessToken(accessToken: string): Promise<boolean> {
-    return new Promise((res) => res(true));
+  validateAccessToken(accessToken: string) {
+    const verify = jwt.verify(accessToken, keys.JWT_ACCESS_SECRET);
+    return Boolean(verify);
   }
   getUserDataFromToken(token: string) {
     const result = jwt.decode(token);
     if (typeof result === "object" && "email" in result && "id" in result) {
-      return result as { email: string; id: string };
+      return { email: result.email, id: result.id };
     }
     return null;
   }

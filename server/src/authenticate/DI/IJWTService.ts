@@ -3,7 +3,7 @@ export interface IJWTService {
     accessToken: string;
     refreshToken: string;
   };
-  validateRefreshToken(refreshToken: string): Promise<boolean>;
-  validateAccessToken(accessToken: string): Promise<boolean>;
+  validateRefreshToken(refreshToken: string): boolean;
+  validateAccessToken(accessToken: string): boolean;
   getUserDataFromToken(token: string): { id: string; email: string } | null;
 }
