@@ -1,14 +1,11 @@
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 
 import { keys } from "../../config/keys";
 
 import { IJWTService } from "../../authenticate/DI/IJWTService";
 
 export default class JWTService implements IJWTService {
-  generateTokens(payload: Record<string, unknown>): {
-    accessToken: string;
-    refreshToken: string;
-  } {
+  generateTokens(payload: Record<string, unknown>) {
     const accessToken = jwt.sign(payload, keys.JWT_ACCESS_SECRET, {
       expiresIn: "30m",
     });
@@ -18,12 +15,26 @@ export default class JWTService implements IJWTService {
     return { accessToken, refreshToken };
   }
   validateRefreshToken(refreshToken: string) {
-    const verify = jwt.verify(refreshToken, keys.JWT_REFRESH_SECRET);
-    return Boolean(verify);
+    try {
+      jwt.verify(refreshToken, keys.JWT_REFRESH_SECRET, {
+        ignoreExpiration: false,
+      });
+      return true;
+    } catch (err) {
+      if (err instanceof TokenExpiredError) return false;
+      throw err;
+    }
   }
   validateAccessToken(accessToken: string) {
-    const verify = jwt.verify(accessToken, keys.JWT_ACCESS_SECRET);
-    return Boolean(verify);
+    try {
+      jwt.verify(accessToken, keys.JWT_ACCESS_SECRET, {
+        ignoreExpiration: false,
+      });
+      return true;
+    } catch (err) {
+      if (err instanceof TokenExpiredError) return false;
+      throw err;
+    }
   }
   getUserDataFromToken(token: string) {
     const result = jwt.decode(token);
