@@ -8,9 +8,17 @@ import { IRoomRepository } from "./DI/IRoomRepository";
 export default class RoomService {
   @inject(TYPES.RoomRepository) private roomRepository: IRoomRepository;
 
-  public async getHistory(roomId: string, startHistory: number, offsetHistory: number) {
+  public async getHistory(
+    roomId: string,
+    startHistory: number,
+    offsetHistory: number,
+  ) {
     try {
-      const roomSnapshot = await this.roomRepository.findRoomById(roomId, startHistory, offsetHistory);
+      const roomSnapshot = await this.roomRepository.findRoomById(
+        roomId,
+        startHistory,
+        offsetHistory,
+      );
       const room = Room.create(roomSnapshot);
       return room.history;
     } catch (err) {
@@ -21,7 +29,7 @@ export default class RoomService {
   public async sendMessage(message: typeMessage) {
     try {
       const roomSnapshot = await this.roomRepository.findRoomById(
-        message.roomId
+        message.roomId,
       );
       const { id } = roomSnapshot;
 

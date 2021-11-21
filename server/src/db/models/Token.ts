@@ -1,23 +1,26 @@
-const { Schema, model, models } = require('mongoose');
+import { Schema, model, models, Model } from "mongoose";
 
 const Token = new Schema({
-    user: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'users',
-        required: true,
-    },
-    refreshToken: { 
-        type: String,
-        required: true,
-    }
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
+  refreshToken: {
+    type: String,
+    required: true,
+  },
 });
 
-let Tokens;
+let Tokens: Model<{
+    refreshToken: string;
+    user: string;
+}, {}, {}>;
 
 if (models.tokens) {
-    Tokens = model('tokens');
+  Tokens = model("tokens");
 } else {
-    Tokens = model('tokens', Token);
+  Tokens = model("tokens", Token);
 }
 
-module.exports = Tokens;
+export default Tokens;
