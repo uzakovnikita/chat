@@ -1,14 +1,8 @@
+import "reflect-metadata";
 import { Container } from "inversify";
-
-import {
-  UserRepository,
-  RoomRepository,
-  TokenRepository,
-} from "./adapters/database/repositories";
-
+import { UserRepository, RoomRepository, TokenRepository } from "./adapters/database/repositories";
 import Encoder from "./adapters/encoder";
 import JWTService from "./adapters/JWTService";
-
 import { TYPES } from "./types";
 
 const container = new Container();

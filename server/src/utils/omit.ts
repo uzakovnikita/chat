@@ -12,12 +12,14 @@ const omit = <
   return keys.reduce((acc, key) => {
     if (key !== currentProp) {
       acc[key] = object[key];
+
       return acc;
     }
     if (prop.length === 1) {
       return acc;
     }
     acc[key] = omit(object[key], prop.slice(1));
+
     return acc;
   }, {} as Record<string, any>) as K;
 };

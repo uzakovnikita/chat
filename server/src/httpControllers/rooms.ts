@@ -1,37 +1,26 @@
-import { typeMessage, typeRoomSnapshot } from "../domain/entity/types";
+import express from "express";
 import { roomService } from "../domain/useCases";
-import { jwtService } from "../adapters/JWTService";
+import JWTService from "../adapters/JWTService";
 
-const getHistory = async (
-  req: { query: { roomId: any; startHistory: any; offsetHistory: any } },
-  res: { json: (arg0: typeMessage[]) => void },
-  next: (arg0: any) => void
-) => {
+const jwtService = new JWTService();
+
+const getHistory = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const { roomId, startHistory, offsetHistory } = req.query;
-
   try {
-    const history = await roomService.getHistory(
-      roomId,
-      startHistory,
-      offsetHistory
-    );
+    const history = await roomService.getHistory(String(roomId), Number(startHistory), Number(offsetHistory));
     res.json(history);
   } catch (err) {
     next(err);
   }
 };
 
-const getRooms = async (
-  req: { headers: { authorization: any } },
-  res: { json: (arg0: { message: string; rooms: typeRoomSnapshot[] }) => any },
-  next: (arg0: any) => void
-) => {
+const getRooms = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const authorizationHeader = req.headers.authorization;
   const accessToken = authorizationHeader.split(" ")[1];
   try {
     const userData = jwtService.getUserDataFromToken(accessToken);
     const rooms = await roomService.getRooms(userData.id);
-    return res.json({
+    res.json({
       message: "get rooms success",
       rooms,
     });

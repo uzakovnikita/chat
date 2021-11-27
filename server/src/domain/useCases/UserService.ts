@@ -1,14 +1,11 @@
 import { inject, injectable } from "inversify";
-
-import User from "../entity/User";
-
 import { IRoomRepository } from "./DI/IRoomRepository";
 import { IUserRepository } from "./DI/IUserRepository";
 import { IEncoder } from "./DI/IEncoder";
-
 import { TYPES } from "../../types";
 import { typeMessage } from "../entity/types";
 import Room from "../entity/Room";
+import User from "../entity/User";
 
 @injectable()
 export default class UserService {

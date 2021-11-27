@@ -1,20 +1,15 @@
-const mongoose = require('mongoose');
+/* eslint-disable import/no-mutable-exports */
+import mongoose from "mongoose";
 
-const { MONGO_URI } = require('../config/keys');
+import keys from "../config/keys";
 
-let connect = null;
+export let connect: typeof mongoose = null;
 
-(async () => {
-    try {
-        connect = await mongoose.connect(MONGO_URI, {
-            useUnifiedTopology: true,
-            useNewUrlParser: true,
-        });
-        console.log('db is connected');
-    } catch (err) {
-        console.log(err);
-    }
+export default (async () => {
+  try {
+    connect = await mongoose.connect(keys.MONGO_URI);
+    console.log("db is connected");
+  } catch (err) {
+    console.log(err);
+  }
 })();
-
-module.exports.connect = connect;
-module.exports = this;

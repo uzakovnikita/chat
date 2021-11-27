@@ -1,6 +1,6 @@
-import express, { Router } from "express";
-import {registry} from '../httpControllers/registry';
+// import express, { Router } from "express";
+// import { registry } from "../httpControllers/registry";
 
-const router = Router();
+// const router = Router();
 
-router.post('/register', registry);
+// router.post("/register", registry);

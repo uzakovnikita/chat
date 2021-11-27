@@ -1,23 +1,14 @@
-const {server} = require('./app');
-require('./db/index');
-require('./sockets/index');
+/* eslint-disable no-console */
+import server from "./app";
 
 const PORT = process.env.PORT || 1000;
 
 (async () => {
   try {
-    server.listen(PORT, (err: any) => {
-      if (err) {
-        throw new Error(err);
-      }
+    server.listen(PORT, () => {
       console.log(`server has been started on PORT ${PORT}`);
     });
-  } catch(err) {
-
-    console.log(err)
+  } catch (err) {
+    console.log(err);
   }
 })();
-
-
-
-

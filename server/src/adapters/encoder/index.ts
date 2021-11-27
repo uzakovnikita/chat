@@ -1,1 +1,1 @@
-export {default} from './Encoder';
+export { default } from "./Encoder";

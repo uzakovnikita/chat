@@ -1,7 +1,7 @@
 export type userDTO = {
-    credentials: {
-        nameOfLoginField: string,
-        value: string
-    },
-    id: string
-}
+  credentials: {
+    nameOfLoginField: string;
+    value: string;
+  };
+  id: string;
+};

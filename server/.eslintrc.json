@@ -3,20 +3,26 @@
     "es2021": true,
     "node": true
   },
-  "extends": ["plugin:prettier/recommended", "airbnb-base", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended"],
+  "extends": [
+    "airbnb-base",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 13,
+    "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import"],
   "rules": {
     "semi": ["error", "always"],
     "quotes": ["error", "double"],
     "space-before-blocks": ["error", "always"],
     "newline-before-return": "error",
-    
+    "class-methods-use-this": ["off"],
     "prettier/prettier": ["error", { "singleQuote": false, "parser": "typescript" }],
+    "no-restricted-exports": ["off"],
     "import/extensions": 0
   },
   "settings": {
