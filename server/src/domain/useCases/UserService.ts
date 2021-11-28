@@ -17,6 +17,7 @@ export default class UserService {
 
   public async signin(email: string, password: string) {
     const userIsAlreadyExist = await this.userRepository.findUserByEmail(email);
+
     if (userIsAlreadyExist) {
       throw new Error("User already exist");
     }
@@ -27,7 +28,9 @@ export default class UserService {
       email,
       password: this.encoder.encoder(password),
     });
+
     const { id } = await this.userRepository.createUser(newUser.getSnapshot());
+
     existingUsers.forEach(async (existingUser) => {
       const users = [existingUser.id, id];
       const history: typeMessage[] = [];
@@ -44,9 +47,11 @@ export default class UserService {
   public async login(email: string, password: string) {
     const userSnapshot = await this.userRepository.findUserByEmail(email);
     const isEqualPassword = await this.encoder.compare(password, userSnapshot.password);
+
     if (isEqualPassword) {
       return userSnapshot;
     }
+
     throw new Error("Password is not valid");
   }
 }

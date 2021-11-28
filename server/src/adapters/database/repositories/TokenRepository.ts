@@ -1,10 +1,10 @@
 import { ITokenRepository } from "../../../authenticate/DI/ITokenRepository";
-
 import Token from "../../../db/models/Token";
 
 export default class TokenRepository implements ITokenRepository {
   public async updateToken(id: string, token: string) {
     const updateResult = await Token.updateOne({ user: id }, { refreshToken: token });
+
     if (updateResult.modifiedCount === 1) {
       return true;
     }
@@ -21,6 +21,7 @@ export default class TokenRepository implements ITokenRepository {
 
   public async findTokenByUserId(id: string) {
     const result = await Token.findOne({ user: id });
+
     if (result) {
       return result.refreshToken;
     }

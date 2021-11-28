@@ -11,11 +11,7 @@ export type typeRoomSnapshot = {
   history: typeMessage[];
 };
 
-export type typeUserDTO = {
-  email: string,
-};
-
 export type typeUserSnapshot = {
-  email: string,
-  password: string
+  email: string;
+  password: string;
 };

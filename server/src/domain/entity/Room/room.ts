@@ -1,13 +1,12 @@
+/* eslint-disable no-underscore-dangle */
 import { typeMessage, typeRoomSnapshot } from "../types";
 
 export default class Room {
-  private constructor(
-    private _users: string[],
-    private _history: typeMessage[]
-  ) {}
+  private constructor(private _users: string[], private _history: typeMessage[]) {}
 
   public static create(roomSnapshot: typeRoomSnapshot) {
     const { users, history } = roomSnapshot;
+
     return new Room(users, history);
   }
 

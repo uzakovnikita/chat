@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { typeUserDTO } from "../types";
 
 export default class User {
@@ -6,6 +7,7 @@ export default class User {
   public static create(userDTO: typeUserDTO & { password: string }) {
     const { email, password } = userDTO;
     const instance = new User(email, password);
+
     return instance;
   }
 

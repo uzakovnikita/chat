@@ -23,7 +23,8 @@
     "class-methods-use-this": ["off"],
     "prettier/prettier": ["error", { "singleQuote": false, "parser": "typescript" }],
     "no-restricted-exports": ["off"],
-    "import/extensions": 0
+    "import/extensions": 0,
+    "no-useless-constructor": ["off"]
   },
   "settings": {
     "import/resolver": {

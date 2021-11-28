@@ -8,30 +8,30 @@ import { TYPES } from "../types";
 @injectable()
 export default class AuthService {
   @inject(TYPES.JWTService) private jwtService: IJWTService;
+
   @inject(TYPES.TokenRepository) private tokenRepository: ITokenRepository;
 
   public async login(email: string, id: string) {
     const tokens = this.jwtService.generateTokens({ email, id });
     this.tokenRepository.updateToken(email, tokens.refreshToken);
+
     return { ...tokens };
   }
 
   public async signin(email: string, id: string) {
     const tokens = this.jwtService.generateTokens({ email, id });
     this.tokenRepository.saveToken(email, tokens.refreshToken);
+
     return { ...tokens };
   }
 
   public async refresh(refreshTokenOld: string) {
     const userData = this.jwtService.getUserDataFromToken(refreshTokenOld);
 
-    const tokenFromRepository = await this.tokenRepository.findTokenByUserId(
-      userData.id
-    );
+    const tokenFromRepository = await this.tokenRepository.findTokenByUserId(userData.id);
 
     const isValidRefreshToken =
-      this.jwtService.validateRefreshToken(refreshTokenOld) &&
-      tokenFromRepository === refreshTokenOld;
+      this.jwtService.validateRefreshToken(refreshTokenOld) && tokenFromRepository === refreshTokenOld;
 
     if (!isValidRefreshToken) {
       throw new Error("Unathorized error");
