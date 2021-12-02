@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import { typeUserDTO } from "../types";
+import { typeUserDTO } from "../../../types/";
 
 export default class User {
   private constructor(private email: string, private _password?: string) {}

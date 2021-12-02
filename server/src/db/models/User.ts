@@ -13,7 +13,8 @@ const userSchema = new Schema({
   },
 });
 
-let User: Model<typeUserSnapshot, {}, {}>;
+// eslint-disable-next-line import/no-mutable-exports
+let User: Model<typeUserSnapshot, Record<string, unknown>, Record<string, unknown>>;
 
 if (models.users) {
   User = model("users");

@@ -12,10 +12,15 @@ const Token = new Schema({
   },
 });
 
-let Tokens: Model<{
+// eslint-disable-next-line import/no-mutable-exports
+let Tokens: Model<
+  {
     refreshToken: string;
     user: string;
-}, {}, {}>;
+  },
+  Record<string, unknown>,
+  Record<string, unknown>
+>;
 
 if (models.tokens) {
   Tokens = model("tokens");

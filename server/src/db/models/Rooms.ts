@@ -15,10 +15,15 @@ const roomsSchema = new Schema({
   ],
 });
 
-let Room: Model<{
-  members: string[];
-  messages: string[];
-}, {}, {}>;
+// eslint-disable-next-line import/no-mutable-exports
+let Room: Model<
+  {
+    members: string[];
+    messages: string[];
+  },
+  Record<string, unknown>,
+  Record<string, unknown>
+>;
 
 if (models.rooms) {
   Room = model("rooms");
